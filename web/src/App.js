@@ -6,7 +6,7 @@ function App() {
   return (
     <div className='flex flex-col w-screen h-screen bg-secondary-content'>
       <nav className="navbar flex justify-between bg-base-200">
-        <a className="btn btn-ghost normal-case text-base" href="#menu">VetoFun</a>
+        <a className="btn btn-ghost normal-case text-base" href="#menu">VotaFun</a>
         <div>
           <a className="btn btn-ghost normal-case text-base" href="create">Create Room</a>
           <a className="btn btn-ghost normal-case text-base" href="join">Join Room</a>
