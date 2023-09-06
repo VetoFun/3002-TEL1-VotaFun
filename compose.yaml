@@ -1,0 +1,9 @@
+services:
+  web:
+    build:
+      context: web
+    ports:
+      - 3000:3000
+  backend:
+    build:
+      context: backend
