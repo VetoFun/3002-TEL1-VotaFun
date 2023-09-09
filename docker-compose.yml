@@ -1,0 +1,33 @@
+version: '3'
+services:
+  frontend:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    volumes:
+      - ./web/src:/app/src
+    ports:
+      - "3000:3000"
+    environment:
+      - WATCHPACK_POLLING=true    
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    volumes:
+      - ./backend/src:/app/
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./backend/.env
+    depends_on:
+      - firebase-emulator
+
+  firebase-emulator:
+    build:
+      context: ./firebase
+      dockerfile: Dockerfile
+    ports:
+      - "4000:4000"
+      - "9000:9000"
