@@ -4,12 +4,11 @@ FROM python:3.11-slim
 # Set the working directory in the container
 WORKDIR /app
 
-# Copy the pyproject.toml and poetry.lock files to the container
-COPY pyproject.toml poetry.lock ./
+# Copy the requirements.txt file to the container
+COPY requirements.txt ./
 
-# Install Poetry and project dependencies
-RUN pip install poetry
-RUN poetry config virtualenvs.create false && poetry install --no-dev
+# Install project dependencies using pip
+RUN pip install -r requirements.txt
 
 # Copy the entire src directory to the container
 COPY src/ ./
