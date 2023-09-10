@@ -22,12 +22,9 @@ services:
     env_file:
       - ./backend/.env
     depends_on:
-      - firebase-emulator
+      - redis
 
-  firebase-emulator:
-    build:
-      context: ./firebase
-      dockerfile: Dockerfile
+  redis:
+    image: redis:7.2
     ports:
-      - "4000:4000"
-      - "9000:9000"
+      - "6379:6379"
