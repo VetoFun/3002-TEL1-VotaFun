@@ -11,13 +11,6 @@
     "test": "jest --watch",
     "prepare": "cd .. && husky install web/.husky"
   },
-  "lint-staged": {
-    "*.{js,jsx,ts,tsx}": [
-      "pnpm exec eslint --fix --max-errors 0",
-      "pnpm exec prettier --write",
-      "git add"
-    ]
-  },
   "dependencies": {
     "@types/node": "20.6.0",
     "@types/react": "18.2.21",

@@ -1,5 +1,5 @@
 interface ParticipantProps {
-  initial;
+  initial:;
   name: string;
 }
 
