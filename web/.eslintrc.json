@@ -1,10 +1,11 @@
 {
-  "extends": ["next", "prettier", "plugin:tailwindcss/recommended"],
-  "plugins": ["prettier"],
+  "extends": ["next", "prettier", "plugin:tailwindcss/recommended", "plugin:@typescript-eslint/recommended"],
+  "plugins": ["prettier", "@typescript-eslint"],
   "rules": {
     "import/prefer-default-export": "off",
     "no-console": "warn",
     "no-var": "error",
-    "no-html-link-for-pages": "off"
+    "no-html-link-for-pages": "off",
+    "@typescript-eslint/no-unused-vars": ["error", { "vars": "all", "args": "after-used", "ignoreRestSiblings": false }]
   }
 }
