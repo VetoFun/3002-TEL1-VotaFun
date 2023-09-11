@@ -1,5 +1,5 @@
 interface ParticipantProps {
-  initial: string;
+  initial;
   name: string;
 }
 
@@ -15,7 +15,7 @@ function Participant({ initial, name }: ParticipantProps) {
         <p className="my-auto">{name}</p>
       </div>
     </div>
-  );zz
+  );
 }
 
 export { Participant };
