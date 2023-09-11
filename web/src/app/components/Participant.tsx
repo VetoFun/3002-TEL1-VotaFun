@@ -1,5 +1,10 @@
 
-function Participant({ initial, name }) {
+interface ParticipantProps {
+    initial: string,
+    name: string
+}
+
+function Participant({ initial, name } : ParticipantProps) {
     return (
     <div className='flex gap-4 px-4 py-2 align-middle w-full hover:bg-base-content hover:text-neutral-focus transition-colors'>
         <div className="avatar placeholder">

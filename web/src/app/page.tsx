@@ -1,8 +1,7 @@
-import { Participant } from './components/Participant';
-import { VoteButton } from './components/VoteButton';
-import logo from './logo.svg';
+import { Participant } from "./components/Participant"
+import { VoteButton } from "./components/VoteButton"
 
-function App() {
+export default function Home() {
   return (
     <div className='flex flex-col w-screen h-screen bg-secondary-content'>
       <nav className="navbar flex justify-between bg-base-200">
@@ -30,7 +29,5 @@ function App() {
         </aside>
       </div>
     </div>
-  );
+  )
 }
-
-export default App;
