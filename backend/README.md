@@ -1,9 +1,9 @@
 ### backend
 
-1. `pre-commit install`, this will run a pre-commit hook
-2. `python -m venv .venv`
-3. `source .venv/Scripts/activate`
-4. `pip install -r requirements.txt`
+1. `python -m venv .venv`
+2. `source .venv/Scripts/activate`
+3. `pip install -r requirements.txt`
+4. `pre-commit install`, this will run a pre-commit hook when u commit
 5. `cd src`
 6. `flask run`
 7. Access flask api at `localhost:5000`
