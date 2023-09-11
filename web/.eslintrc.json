@@ -1,4 +1,5 @@
 {
+  "parser": "@typescript-eslint/parser",
   "extends": ["next", "prettier", "plugin:tailwindcss/recommended", "plugin:@typescript-eslint/recommended"],
   "plugins": ["prettier", "@typescript-eslint"],
   "rules": {

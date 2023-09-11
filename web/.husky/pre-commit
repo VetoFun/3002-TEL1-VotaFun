@@ -6,7 +6,17 @@ cd web
 # Run linting
 pnpm lint-staged
 
+if [ $? -ne 0 ]; then
+  echo "Linting failed. Commit aborted."
+  exit 1
+fi
+
 # Run tests
 pnpm jest --runInBand --detectOpenHandles --forceExit
+
+if [ $? -ne 0 ]; then
+  echo "Testing failed. Commit aborted."
+  exit 1
+fi
 
 # Return non-zero exit code if any of the above commands fail
