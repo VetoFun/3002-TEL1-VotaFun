@@ -16,6 +16,6 @@ function Participant({ initial, name }: ParticipantProps) {
       </div>
     </div>
   );
-}z
+}
 
 export { Participant };
