@@ -8,7 +8,6 @@ export const metadata: Metadata = {
   title: 'VotaFun',
   description: '',
 };
-zz;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
