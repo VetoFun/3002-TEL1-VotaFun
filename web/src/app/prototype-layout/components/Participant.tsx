@@ -15,7 +15,7 @@ function Participant({ initial, name }: ParticipantProps) {
         <p className="my-auto">{name}</p>
       </div>
     </div>
-  );z
+  );zz
 }
 
 export { Participant };

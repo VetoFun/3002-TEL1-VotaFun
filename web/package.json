@@ -13,7 +13,7 @@
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
-      "pnpm exec eslint --fix",
+      "pnpm exec eslint --fix --max-errors 0",
       "pnpm exec prettier --write",
       "git add"
     ]
