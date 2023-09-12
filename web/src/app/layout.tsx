@@ -16,7 +16,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" data-theme="dracula">
-      <body className={inter.className}>{children}</body>
+      <body className={`bg-base-100 ${inter.className}`}>{children}</body>
     </html>
   );
 }
