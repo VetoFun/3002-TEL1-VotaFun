@@ -26,7 +26,7 @@ services:
 
   redis:
     build:
-      context: ./redis
+      context: ./redisdb
       dockerfile: Dockerfile
     ports:
       - "6379:6379"
