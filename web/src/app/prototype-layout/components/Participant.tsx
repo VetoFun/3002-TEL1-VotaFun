@@ -11,7 +11,7 @@ function Participant({ initial, name }: ParticipantProps) {
           <span className="inline text-base">{initial}</span>
         </div>
       </div>
-      <div className="flex flex-grow">
+      <div className="flex grow">
         <p className="my-auto">{name}</p>
       </div>
     </div>
