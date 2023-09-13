@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" data-theme="dracula">
-      <body className={inter.className}>{children}</body>
+      <body className={`bg-base-100 ${inter.className}`}>{children}</body>
     </html>
   );
 }
