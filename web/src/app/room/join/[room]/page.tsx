@@ -1,5 +1,7 @@
-import { Loader } from '@/components/Loader';
-import { UserNameInput } from '@/components/UserNameInput';
+'use client'
+import { Loader } from '@/components/common/Loader';
+import { UserNameInput } from '@/components/common/UserNameInput';
+import { useRoomStore } from '@/stores/useRoomStore';
 
 interface JoinRoomPageProps {
   params: {
@@ -8,6 +10,10 @@ interface JoinRoomPageProps {
 }
 
 export default function JoinRoomPage({ params }: JoinRoomPageProps) {
+
+  const setRoomId = useRoomStore((state) => state.setRoomId);
+  setRoomId(params.room)
+
   return (
     <main className="h-screen w-screen bg-base-100">
       <div className="relative left-1/2 top-1/2 flex w-fit -translate-x-1/2 -translate-y-1/2 flex-col gap-2">

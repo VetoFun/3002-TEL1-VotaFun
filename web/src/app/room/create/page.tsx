@@ -1,5 +1,5 @@
-import { Loader } from '@/components/Loader';
-import { UserNameInput } from '@/components/UserNameInput';
+import { Loader } from '@/components/common/Loader';
+import { UserNameInput } from '@/components/common/UserNameInput';
 
 export default function CreateRoomPage() {
   return (
