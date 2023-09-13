@@ -1,13 +1,13 @@
 import { Loader } from '@/components/Loader';
 import { UserNameInput } from '@/components/UserNameInput';
 
-interface JoinRoomPageProps {
+interface RoomLobbyPageProps {
   params: {
     room: string;
   };
 }
 
-export default function JoinRoomPage({ params }: JoinRoomPageProps) {
+export default function RoomLobbyPage({ params }: RoomLobbyPageProps) {
   return (
     <main className="h-screen w-screen bg-base-100">
       <div className="relative left-1/2 top-1/2 flex w-fit -translate-x-1/2 -translate-y-1/2 flex-col gap-2">
