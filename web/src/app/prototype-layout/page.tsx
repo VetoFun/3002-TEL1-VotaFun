@@ -1,5 +1,5 @@
-import { Participant } from "./components/Participant";
-import { VoteButton } from "./components/VoteButton";
+import { Participant } from './components/Participant';
+import { VoteButton } from './components/VoteButton';
 
 export default function PrototypeLayout() {
   return (
@@ -17,11 +17,9 @@ export default function PrototypeLayout() {
           </a>
         </div>
       </nav>
-      <div id="container" className="flex flex-grow">
-        <main className="flex-grow py-6">
-          <p className="mb-8 text-center text-2xl">
-            Please select your preferred activity
-          </p>
+      <div id="container" className="flex grow">
+        <main className="grow py-6">
+          <p className="mb-8 text-center text-2xl">Please select your preferred activity</p>
           <div className="mx-auto grid w-1/3 grid-cols-2 grid-rows-2 gap-2">
             <VoteButton id="1" text="Option 1" />
             <VoteButton id="2" text="Option 2" />
@@ -31,9 +29,9 @@ export default function PrototypeLayout() {
         </main>
         <aside className="w-60 flex-none bg-base-100">
           <h2 className="mx-4 mb-2 mt-4 text-xl font-semibold">Participants</h2>
-          <Participant initial={"A"} name={"Alice"} />
-          <Participant initial={"B"} name={"Bob"} />
-          <Participant initial={"C"} name={"Charlie"} />
+          <Participant initial={'A'} name={'Alice'} />
+          <Participant initial={'B'} name={'Bob'} />
+          <Participant initial={'C'} name={'Charlie'} />
         </aside>
       </div>
     </div>
