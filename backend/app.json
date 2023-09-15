@@ -1,0 +1,24 @@
+{
+    "buildpacks": [
+        {
+            "url": [
+                "https://github.com/timanovsky/subdir-heroku-buildpack.git",
+                "heroku/python"
+            ]
+        }
+    ],
+    "environments": {
+        "test": {
+            "addons": [
+                "heroku-redis:in-dyno"
+            ],
+            "env": {
+                "APP_SETTINGS": "src.config.TestingConfig",
+                "REDIS_VERSION": "7.2"
+            },
+            "scripts": {
+                "test": "pytest tests/ -v"
+            }
+        }
+    }
+}
