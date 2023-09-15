@@ -10,7 +10,8 @@
     "environments": {
         "test": {
             "env": {
-                "APP_SETTINGS": "src.config.TestingConfig"
+                "APP_SETTINGS": "src.config.TestingConfig",
+                "PROJECT_PATH": "backend"
             },
             "scripts": {
                 "test-setup": "cd backend && pip install -r requirements.txt",
