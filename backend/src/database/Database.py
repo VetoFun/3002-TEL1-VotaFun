@@ -24,9 +24,10 @@ class Database:
         room_data = {}
         for key, value in room_data_byte.items():
             room_data[key.decode("utf-8")] = value.decode("utf-8")
+        room = Room.from_dict(room_data)
         if return_dict:
-            return room_data
-        return Room.from_dict(room_data)
+            return room.to_dict()
+        return room
 
     def store_room_data(self, room_id: str, room_data: Room) -> None:
         # Store room data in Redis Hash
