@@ -6,6 +6,7 @@ exclude =
     docs/source/conf.py,
     old,
     build,
-    dist
+    dist,
+    *venv*
 max-complexity = 15
 max-line-length = 120

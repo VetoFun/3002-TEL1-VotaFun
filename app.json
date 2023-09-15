@@ -14,7 +14,7 @@
                 "PROJECT_PATH": "backend"
             },
             "scripts": {
-                "test": "pytest tests/ -v"
+                "test": "flake8 . && pytest tests/ -v"
             }
         }
     }
