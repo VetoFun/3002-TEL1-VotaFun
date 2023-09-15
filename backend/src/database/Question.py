@@ -1,5 +1,5 @@
 from typing import List, Dict, Union, Optional
-from src.database.option_class import Option
+from src.database.Option import Option
 
 
 class Question:

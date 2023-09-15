@@ -1,9 +1,9 @@
 import pytest
 from src.database.Database import Database
-from src.database.room_class import Room
-from src.database.question_class import Question
-from src.database.user_class import User
-from src.database.option_class import Option
+from src.database.Room import Room
+from src.database.Question import Question
+from src.database.User import User
+from src.database.Option import Option
 
 
 def create_test_room():
@@ -43,7 +43,7 @@ def reset_db(test_db: Database):
 @pytest.fixture
 def test_db():
     test_db = Database()
-    with test_db.connection as conn:
+    with test_db.r as conn:
         # Ensure the connection is established
         assert conn
     return test_db

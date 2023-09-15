@@ -1,6 +1,6 @@
 from typing import List, Dict, Union, Optional
-from src.database.question_class import Question
-from src.database.user_class import User
+from src.database.Question import Question
+from src.database.User import User
 import json
 
 

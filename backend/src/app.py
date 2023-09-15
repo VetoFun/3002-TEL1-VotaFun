@@ -1,5 +1,5 @@
 from flask import Flask
-from redisdb.src.Database import Database
+from src.database.Database import Database
 
 app = Flask(__name__)
 # database setup

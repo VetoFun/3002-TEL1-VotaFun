@@ -2,10 +2,10 @@ import datetime
 import logging
 import redis
 import json
-from src.database.room_class import Room
-from src.database.question_class import Question
-from src.database.user_class import User
-from src.database.option_class import Option
+from src.database.Room import Room
+from src.database.Question import Question
+from src.database.User import User
+from src.database.Option import Option
 from typing import List, Dict, Union, Optional
 
 # Define a logger for your class
@@ -28,20 +28,19 @@ def get_room_key(room_id: str) -> str:
 
 
 class Database:
-    def __init__(self, host: str = "localhost", port: int = 6379):
+    def __init__(self, redis_url: str = "redis://localhost:6379") -> None:
         """
         Represents a Redis database for managing room data.
 
         Args:
-            host (str): The url to the connection. Default="localhost"
-            port (int): The port number to connect to. Default=6379
+            redis_url (str): The URL used to connect to the Redis server.
 
         Attributes:
-            connection (redis.Redis): The Redis database connection.
-            roomcode_to_roomid_index (dict): A dictionary to index room
-            codes to room IDs.
+            r (redis.from_url): The Redis database connection.
+            roomcode_to_roomid_index (dict): A dictionary for indexing room
+                codes to room IDs.
         """
-        self.connection = redis.Redis(host=host, port=port)
+        self.r = redis.from_url(redis_url)
         self.roomcode_to_roomid_index = {}
 
     def does_room_id_exist(self, room_id: str) -> bool:
@@ -54,7 +53,7 @@ class Database:
         Returns:
             bool: True if the room ID exists, False otherwise.
         """
-        if self.connection.keys(room_id):
+        if self.r.keys(room_id):
             return True
         else:
             return False
@@ -73,7 +72,7 @@ class Database:
             is not found.
         """
         if self.does_room_id_exist(room_id):
-            room_data_byte = self.connection.hgetall(room_id)
+            room_data_byte = self.r.hgetall(room_id)
             # Check if the field exists and the value is not None
             if room_data_byte is not None:
                 try:
@@ -109,7 +108,7 @@ class Database:
             dict or None: A dictionary representing the field data or None if data is not found.
         """
         if self.does_room_id_exist(room_id):
-            db_data = json.loads(self.connection.hget(room_id, field).decode("utf-8"))
+            db_data = json.loads(self.r.hget(room_id, field).decode("utf-8"))
             logger.info(f"db_data's {field} was successfully retrieved from {room_id}")
             return db_data
         else:
@@ -136,7 +135,7 @@ class Database:
             self.roomcode_to_roomid_index[room_code] = room_id
             # Store room data in Redis Hash
             for key, value in room_data.to_dict().items():
-                self.connection.hset(room_id, key, json.dumps(value))
+                self.r.hset(room_id, key, json.dumps(value))
             logger.info(f"{room_id} successfully stored.")
             return True
 
@@ -153,7 +152,7 @@ class Database:
         Returns:
             bool: True if data is successfully stored, False otherwise.
         """
-        db_data = json.loads(self.connection.hget(room_id, field).decode("utf-8"))
+        db_data = json.loads(self.r.hget(room_id, field).decode("utf-8"))
         # Check if 'data' has a .to_dict() method
         if hasattr(data, "to_dict") and callable(data.to_dict):
             if replace:
@@ -167,7 +166,7 @@ class Database:
                 db_data.append(data)
 
         if self.does_room_id_exist(room_id):
-            self.connection.hset(room_id, field, json.dumps(db_data))
+            self.r.hset(room_id, field, json.dumps(db_data))
             logger.info(f"{field}: {data} was successfully inserted in Room: {room_id}")
             return True
         else:
@@ -186,7 +185,7 @@ class Database:
         """
         if self.does_room_id_exist(room_id):
             room_key = room_id
-            self.connection.delete(room_key)
+            self.r.delete(room_key)
             logger.info(f"{room_id} removed successfully from Redis.")
             return True
         else:
@@ -470,10 +469,10 @@ class Database:
         """
         Query all hash keys in the Redis database and print field-value pairs.
         """
-        hash_keys = [i.decode("utf-8") for i in self.connection.keys("*")]
+        hash_keys = [i.decode("utf-8") for i in self.r.keys("*")]
         # print("hash_keys:", hash_keys)
         # for key in hash_keys:
-        # field_value_pairs = self.connection.hgetall(key)
+        # field_value_pairs = self.r.hgetall(key)
         # print(f"Hash Key: {key}")
         # print("Field-Value Pairs:")
         # print(f"{field_value_pairs}")
