@@ -6,12 +6,8 @@
     ],
     "environments": {
         "test": {
-            "addons": [
-                "heroku-redis:in-dyno"
-            ],
             "env": {
-                "APP_SETTINGS": "src.config.TestingConfig",
-                "REDIS_VERSION": "7.2"
+                "APP_SETTINGS": "src.config.TestingConfig"
             },
             "scripts": {
                 "test-setup": "cd backend && pip install -r requirements.txt",
