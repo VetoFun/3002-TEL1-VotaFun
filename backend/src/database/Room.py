@@ -1,7 +1,8 @@
-from typing import List, Dict, Union, Optional
-from src.database.Question import Question
-from src.database.User import User
 import json
+from typing import List, Dict, Union, Optional
+
+from .Question import Question
+from .User import User
 
 
 class Room:
@@ -31,7 +32,6 @@ class Room:
     def __init__(
         self,
         room_id: str,
-        room_code: str,
         number_of_user: int,
         max_capacity: int,
         last_activity: str,
@@ -43,7 +43,6 @@ class Room:
         users: Optional[List[User]] = None,
     ):
         self.room_id = room_id
-        self.room_code = room_code
         self.number_of_user = number_of_user
         self.max_capacity = max_capacity
         self.last_activity = last_activity
@@ -59,7 +58,6 @@ class Room:
             return False
         return (
             self.room_id == other.room_id
-            and self.room_code == other.room_code
             and self.number_of_user == other.number_of_user
             and self.max_capacity == other.max_capacity
             and self.last_activity == other.last_activity
@@ -71,8 +69,27 @@ class Room:
             and self.users == other.users
         )
 
+    def get_question_from_id(self, question_id: str) -> Question:
+        for question in self.questions:
+            if question.question_id == question_id:
+                return question
+        raise KeyError(f"Question {question_id} does not exist in room {self.room_id}")
+
+    def get_user_from_id(self, user_id: str) -> User:
+        for user in self.users:
+            if user.user_id == user_id:
+                return user
+        raise KeyError(f"User {user_id} does not exist in room {self.room_id}")
+
     def add_user(self, user: User):
         self.users.append(user)
+
+    def remove_user_from_id(self, user_id: str) -> int:
+        for user in self.users:
+            if user.id == user_id:
+                self.users.remove(user)
+                return len(self.users)
+        raise KeyError(f"User {user_id} does not exist in room {self.room_id}")
 
     def add_question(self, question: Question):
         self.questions.append(question)

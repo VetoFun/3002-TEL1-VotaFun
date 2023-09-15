@@ -1,4 +1,4 @@
-from typing import List, Dict, Union, Optional
+from typing import List, Dict, Union
 from src.database.Option import Option
 
 
@@ -12,14 +12,11 @@ class Question:
     """
 
     def __init__(
-        self,
-        question_id: str,
-        question_text: str,
-        options: Optional[List[Option]] = None,
+        self, question_id: str, question_text: str, options: List[Option] = []
     ):
         self.question_id = question_id
         self.question_text = question_text
-        self.options = options or []
+        self.options = options
 
     def __eq__(self, other):
         if not isinstance(other, Question):
@@ -38,6 +35,14 @@ class Question:
             option (Option): The Option object to add.
         """
         self.options.append(option)
+
+    def get_option_by_id(self, option_id: str) -> Option:
+        for option in self.options:
+            if option.option_id == option_id:
+                return option
+        raise KeyError(
+            f"Option {option_id} does not exist in question {self.question_id}"
+        )
 
     def to_dict(self) -> Dict[str, Union[str, List[Dict[str, Union[str, int]]]]]:
         """

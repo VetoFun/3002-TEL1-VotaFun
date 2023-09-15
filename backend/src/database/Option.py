@@ -11,7 +11,7 @@ class Option:
         current_votes (int): The number of current votes of Option objects associated with the question.
     """
 
-    def __init__(self, option_id: str, option_text: str, current_votes: int):
+    def __init__(self, option_id: str, option_text: str, current_votes: int = 0):
         self.option_id = option_id
         self.option_text = option_text
         self.current_votes = current_votes
@@ -24,6 +24,9 @@ class Option:
             and self.option_text == other.option_text
             and self.current_votes == other.current_votes
         )
+
+    def add_vote(self, num_votes: int = 1):
+        self.current_votes += num_votes
 
     def to_dict(self) -> Dict[str, Union[str, int]]:
         """
