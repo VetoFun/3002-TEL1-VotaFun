@@ -7,6 +7,7 @@ exclude =
     old,
     build,
     dist,
-    *venv*
+    *venv*,
+    .heroku
 max-complexity = 15
 max-line-length = 120
