@@ -292,9 +292,6 @@ def test_query_all_hash_keys(test_db):
     # This test is for the query_all_hash_keys method, which prints information but doesn't return values.
     pass
 
-
-if __name__ == "__main__":
-    pytest.main()
     # Example usage:
     # Create a room, add users, questions, and options
     # room = Room(

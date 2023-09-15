@@ -8,6 +8,12 @@
 6. `flask run`
 7. Access flask api at `localhost:5000`
 
-- poetry guide: https://python-poetry.org/docs/basic-usage/
+Testing:
+```
+pytest tests/
+pytest tests/ -v # verbose
+pytest tests/<some file> -k "<some test you want to test>"
+```
+
 - flask guide: https://flask.palletsprojects.com/en/2.3.x/quickstart/#a-minimal-application
 - for all environment variables, please create in a `.env` file, the `docker-compose.yml` uses it
