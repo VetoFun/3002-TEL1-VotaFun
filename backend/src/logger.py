@@ -1,7 +1,7 @@
 import logging
 
 # Create a logger instance with a unique name
-logger = logging.getLogger("database")
+logger = logging.getLogger("votafun")
 
 # Set the logger's minimum logging level (e.g., DEBUG, INFO, WARNING, ERROR, CRITICAL)
 logger.setLevel(logging.DEBUG)
