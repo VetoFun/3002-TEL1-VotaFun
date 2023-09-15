@@ -1,8 +1,14 @@
 import json
-from typing import List, Dict, Union, Optional
+from typing import List, Dict, Union
+from enum import Enum, auto
 
 from .Question import Question
 from .User import User
+
+
+class RoomStatus(Enum):
+    WAITING = auto()
+    STARTED = auto()
 
 
 class Room:
@@ -35,23 +41,23 @@ class Room:
         number_of_user: int,
         max_capacity: int,
         last_activity: str,
-        questions: Optional[List[Question]] = None,
+        questions: List[Question] = [],
         host_id: str = "",
-        status: str = "",
+        status: str = RoomStatus.WAITING,
         room_location: str = "",
         room_activity: str = "",
-        users: Optional[List[User]] = None,
+        users: List[User] = [],
     ):
         self.room_id = room_id
         self.number_of_user = number_of_user
         self.max_capacity = max_capacity
         self.last_activity = last_activity
-        self.questions = questions or []
+        self.questions = questions
         self.host_id = host_id
         self.status = status
         self.room_location = room_location
         self.room_activity = room_activity
-        self.users = users or []
+        self.users = users
 
     def __eq__(self, other):
         if not isinstance(other, Room):
@@ -121,18 +127,16 @@ class Room:
             Room: A Room object.
         """
         # Extract values from the dictionary
-        room_id = eval(data.get("room_id", ""))
-        room_code = eval(data.get("room_code", ""))
-        number_of_user = eval(data.get("number_of_user", 0))
-        max_capacity = eval(data.get("max_capacity", 0))
-        last_activity = eval(data.get("last_activity", ""))
-        host_id = eval(data.get("host_id", ""))
-        status = eval(data.get("status", ""))
-        room_location = eval(data.get("room_location", ""))
-        room_activity = eval(data.get("room_activity", ""))
-        questions = [
-            Question.from_dict(q) for q in json.loads(data.get("questions", []))
-        ]
+        room_id = eval(data.get("room_id"))
+        room_code = eval(data.get("room_code"))
+        number_of_user = eval(data.get("number_of_user"))
+        max_capacity = eval(data.get("max_capacity"))
+        last_activity = eval(data.get("last_activity"))
+        host_id = eval(data.get("host_id"))
+        status = eval(data.get("status"))
+        room_location = eval(data.get("room_location"))
+        room_activity = eval(data.get("room_activity"))
+        questions = [Question.from_dict(q) for q in json.loads(data.get("questions"))]
         users = [User.from_dict(u) for u in json.loads(data.get("users", []))]
 
         # Create and return a Room object
