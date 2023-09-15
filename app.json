@@ -1,9 +1,6 @@
 {
     "buildpacks": [
         {
-            "url": "https://github.com/timanovsky/subdir-heroku-buildpack.git"
-        },
-        {
             "url": "heroku/python"
         }
     ],
@@ -17,6 +14,7 @@
                 "REDIS_VERSION": "7.2"
             },
             "scripts": {
+                "test-setup": "cd backend && pip install -r requirements.txt",
                 "test": "pytest tests/ -v"
             }
         }
