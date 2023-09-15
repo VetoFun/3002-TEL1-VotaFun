@@ -5,7 +5,7 @@
 3. `pip install -r requirements.txt`
 4. `pre-commit install`, this will run a pre-commit hook when u commit
 5. `cd src`
-6. `flask run`
+6. `flask run --debug`
 7. Access flask api at `localhost:5000`
 
 Testing:

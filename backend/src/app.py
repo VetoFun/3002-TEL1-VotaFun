@@ -7,7 +7,7 @@ from .database.Database import Database
 
 
 app = Flask(__name__)
-app_settings = os.environ.gett("APP_SETTINGS", "src.config.DevelopmentConfig")
+app_settings = os.environ.get("APP_SETTINGS", "src.config.DevelopmentConfig")
 app.config.from_object(app_settings)
 CORS(app, supports_credentials=True)
 
