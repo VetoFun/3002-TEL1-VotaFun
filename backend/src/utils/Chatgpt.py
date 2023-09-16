@@ -44,6 +44,24 @@ def chatgpt_func(data, database):
     question_regex = r"Question \d+: (.+)"
     option_regex = r"[A-Z]\).*"
 
+    past_questions = room["questions"]
+    for i in range(0, len(past_questions)):
+        questions = {"role": "assistant", "content": past_questions[i]["question_text"]}
+        messages.append(questions)
+
+        if i + 1 != len(past_questions):
+            votes = past_questions[i]["options"]
+
+            content = ""
+            for key, value in votes.items():
+                content += f"{key}: value, "
+
+            votes_question = {
+                "role": "user",
+                "content": content[:-2],
+            }
+            messages.append(votes_question)
+
     if "num_of_votes" in data:
         content = ""
         for i in range(0, data["num_of_votes"]):
@@ -65,16 +83,19 @@ def chatgpt_func(data, database):
     reply = {"role": "assistant", "content": chat.choices[0].message["content"]}
     messages.append(reply)
     print(messages)
-    rsp = {"Success": True}
+    rsp = {"success": True}
     if len(activity_matches) == 0:
-        rsp["Question"] = question_matches[0]
-        rsp["QuestionID"] = sha1(rsp["Question"].encode("utf-8")).hexdigest()
+        rsp["question"] = question_matches[0]
+        rsp["QuestionID"] = sha1(rsp["question"].encode("utf-8")).hexdigest()
         rsp["num_of_options"] = len(option_matches)
         rsp["Options"] = {}
+        database.add_question(room_id, rsp["QuestionID"], rsp["question"])
 
         for i in option_matches:
             text = i.split(") ")
             rsp["Options"][text[0]] = text[1]
+            database.add_option(room_id, rsp["QuestionID"], text[0], text[1])
+
     else:
         rsp["num_of_activity"] = len(activity_matches)
         rsp["Activities"] = {}

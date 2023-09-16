@@ -50,7 +50,7 @@ class Database:
         self.store_room_data(room_id=room_id, room_data=room)
         return len(room.users)
 
-    def remove_user(self, room_id: str, user_id: str) -> None:
+    def remove_user(self, room_id: str, user_id: str) -> int:
         room = self.query_room_data(room_id=room_id)
         room.remove_user_from_id(user_id=user_id)
         self.store_room_data(room_id=room_id, room_data=room)

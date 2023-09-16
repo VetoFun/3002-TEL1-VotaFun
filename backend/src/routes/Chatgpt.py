@@ -6,6 +6,7 @@ from backend.src.utils.Chatgpt import chatgpt_func
 
 @chatgpt_blueprint.route("/chatgpt", methods=["POST"])
 def chatgpt():
+    # Todo: Ensure that the correct status code is returned.
     """
     API which is a wrapper to call openai API. This fetches all the questions and votes so far, then uses openai
     ChatCompletion to get a reply from ChatGPT.

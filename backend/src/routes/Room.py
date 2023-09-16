@@ -1,5 +1,10 @@
 from backend.src.routes import room_blueprint
-from backend.src.utils.Room import create_room_func, delete_room_func, join_room_func
+from backend.src.utils.Room import (
+    create_room_func,
+    delete_room_func,
+    join_room_func,
+    leave_room_func,
+)
 from flask import jsonify, request, current_app
 
 
@@ -23,9 +28,8 @@ def create_room():
 @room_blueprint.route("/closeroom/<room_id>", methods=["POST"])
 def delete_room(room_id: str):
     """
-    Remove the database entry for the room. Entries in the database
-    for the room’s users, questions, votes, and options will be removed.
-    :return: None
+    :param room_id:
+    :return:
     """
     database = current_app.database
     result = delete_room_func(room_id, database)
@@ -50,9 +54,8 @@ def delete_room(room_id: str):
 @room_blueprint.route("/joinroom/<room_id>/users", methods=["POST"])
 def join_room(room_id: str):
     """
-    Checks the num_users, and adds user to users table if number is < capacity.
-    Increment num_users by 1 and set last_activity time in room.
-    :return: None
+    :param room_id:
+    :return:
     """
     data = request.get_json()
     database = current_app.database
@@ -65,13 +68,15 @@ def join_room(room_id: str):
 
 
 @room_blueprint.route("/rooms/<room_id>/users/<user_id>", methods=["DELETE"])
-def leave_room(room_id, user_id):
+def leave_room(room_id: str, user_id: str):
     """
     :param room_id:
     :param user_id:
     :return:
     """
-    # room = redis_database.query(roomid)
-    # room['current_num_users'] -= 1
-    #
-    # return "Success", 200
+    database = current_app.database
+    result = leave_room_func(room_id, user_id, database)
+    if "error" not in result:
+        return jsonify(result), 200
+    else:
+        return jsonify(result), 500

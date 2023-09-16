@@ -4,6 +4,8 @@ from src.database import User
 from datetime import datetime
 from hashlib import sha1
 
+from src.logger import logger
+
 
 def create_room_func(data: dict, database: Database):
     """
@@ -50,13 +52,13 @@ def delete_room_func(room_id: str, database: Database):
         return {"success": False, "error": "Internal Server Error"}
 
 
-def get_room_id_func(roomid: str, database: Database):
-    """
-    :param room_id:
-    :param database:
-    :return:
-    """
-    pass
+# def get_room_id_func(roomid: str, database: Database):
+#     """
+#     :param room_id:
+#     :param database:
+#     :return:
+#     """
+#     pass
 
 
 def join_room_func(room_id: str, data: dict, database: Database):
@@ -84,10 +86,21 @@ def join_room_func(room_id: str, data: dict, database: Database):
         return {"success": True}
 
 
-def leave_room(roomid: str):
+def leave_room_func(room_id: str, user_id: str, database: Database):
     """
-
-    :param roomid:
+    :param room_id:
+    :param user_id:
+    :param database:
     :return:
     """
-    pass
+    try:
+        room = database.query_room_data(room_id)
+        num_user = database.remove_user(room_id, user_id)
+        logger.info(f"Number of user in {room_id} is {num_user}.")
+        return {
+            "success": True,
+            "num_users": num_user,
+            "is_host": room["host_id"] == user_id,
+        }
+    except Exception:
+        return {"success": False, "error": "Internal Server Error"}

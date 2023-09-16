@@ -106,6 +106,9 @@ class Room:
     def get_max_capacity(self):
         return self.max_capacity
 
+    def set_host(self, new_host_id):
+        self.host_id = new_host_id
+
     def to_dict(self) -> Dict[str, Union[str, int, List[Dict[str, Union[str, int]]]]]:
         return {
             "room_id": self.room_id,
