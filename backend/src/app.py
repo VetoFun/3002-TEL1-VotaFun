@@ -2,7 +2,7 @@ from flask import Flask
 import os
 from flask_cors import CORS
 
-from backend.src.database.Database import Database
+from src.database.Database import Database
 
 from backend.src.routes.Chatgpt import chatgpt_blueprint
 from backend.src.routes.Room import room_blueprint

@@ -100,6 +100,16 @@ class Database:
         self.store_room_data(room_id=room_id, room_data=room)
         return option.current_votes
 
+    def set_vote(
+        self, room_id: str, question_id: str, option_id: str, num_votes: int
+    ) -> int:
+        room = self.query_room_data(room_id=room_id)
+        question = room.get_question_from_id(question_id=question_id)
+        option = question.get_option_by_id(option_id=option_id)
+        option.set_vote(num_votes=num_votes)
+        self.store_room_data(room_id=room_id, room_data=room)
+        return option.current_votes
+
     def update_room_activity_time(self, room_id: str, activity_time: str) -> str:
         room = self.query_room_data(room_id=room_id)
         room.last_activity = activity_time

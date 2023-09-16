@@ -14,5 +14,12 @@ def chatgpt():
     """
     data = request.get_json()
     database = current_app.database
+    try:
+        result = chatgpt_func(data, database)
+        if "error" in result:
+            return result, 500
+        else:
+            return result, 200
 
-    return chatgpt_func(data["roomid"], database), 200
+    except Exception:
+        return {"success": False, "error": "Internal Server Error"}

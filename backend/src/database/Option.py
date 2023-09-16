@@ -28,6 +28,9 @@ class Option:
     def add_vote(self, num_votes: int = 1):
         self.current_votes += num_votes
 
+    def set_vote(self, num_votes: int):
+        self.current_votes = num_votes
+
     def to_dict(self) -> Dict[str, Union[str, int]]:
         """
         Convert Option object to a dictionary.
