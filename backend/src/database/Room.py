@@ -100,10 +100,16 @@ class Room:
     def add_question(self, question: Question):
         self.questions.append(question)
 
+    def get_number_of_user(self):
+        return self.number_of_user
+
+    def get_max_capacity(self):
+        return self.max_capacity
+
     def to_dict(self) -> Dict[str, Union[str, int, List[Dict[str, Union[str, int]]]]]:
         return {
             "room_id": self.room_id,
-            "room_code": self.room_code,
+            # "room_code": self.room_code,
             "number_of_user": self.number_of_user,
             "max_capacity": self.max_capacity,
             "last_activity": self.last_activity,
@@ -128,7 +134,7 @@ class Room:
         """
         # Extract values from the dictionary
         room_id = eval(data.get("room_id"))
-        room_code = eval(data.get("room_code"))
+        # room_code = eval(data.get("room_code"))
         number_of_user = eval(data.get("number_of_user"))
         max_capacity = eval(data.get("max_capacity"))
         last_activity = eval(data.get("last_activity"))
@@ -142,7 +148,7 @@ class Room:
         # Create and return a Room object
         return cls(
             room_id=room_id,
-            room_code=room_code,
+            # room_code=room_code,
             number_of_user=number_of_user,
             max_capacity=max_capacity,
             last_activity=last_activity,

@@ -2,7 +2,7 @@ import redis
 import json
 from typing import List, Dict, Union
 
-from .logger import logger
+from src.logger import logger
 from .Option import Option
 from .Question import Question
 from .Room import Room
@@ -14,7 +14,7 @@ class Database:
         self, redis_url: str = "", redis_host: str = "localhost", redis_port: int = 6379
     ) -> None:
         if not redis_url:
-            redis_url = f"redis://{redis_host}:{redis_port}"
+            redis_url = f"redis://@{redis_host}:{redis_port}"
         self.r = redis.from_url(redis_url)
 
     def query_room_data(self, room_id: str, return_dict=False) -> Union[Room, Dict]:
