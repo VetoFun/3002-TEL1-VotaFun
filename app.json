@@ -1,0 +1,21 @@
+{
+    "buildpacks": [
+        {
+            "url": "https://github.com/timanovsky/subdir-heroku-buildpack.git"
+        },
+        {
+            "url": "heroku/python"
+        }
+    ],
+    "environments": {
+        "test": {
+            "env": {
+                "APP_SETTINGS": "src.config.TestingConfig",
+                "PROJECT_PATH": "backend"
+            },
+            "scripts": {
+                "test": "flake8 . && pytest tests/ -v"
+            }
+        }
+    }
+}

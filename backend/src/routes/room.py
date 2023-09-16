@@ -1,4 +1,6 @@
 from backend.src.routes import room_blueprint
+from backend.src.utils.room import create_room_func
+from flask import jsonify, request
 
 
 @room_blueprint.route("/rooms", methods=["POST"])
@@ -8,6 +10,9 @@ def create_room():
     be generated for the room. Set last_activity time in room.
     :return: JSON object
     """
+    data = request.get_json()
+    # db = current_app.database
+    return jsonify(create_room_func(data["roomid"])), 200
     # data = request.get_json()
     # timestamp = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
     # room_code = sha1(timestamp.encode("utf-8")).hexdigest()

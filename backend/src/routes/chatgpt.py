@@ -29,6 +29,7 @@ messages = [
 
 @chatgpt_blueprint.route("/chatgpt", methods=["POST"])
 def chatgpt():
+    # Todo: decompose into functions
     """
     API which is a wrapper to call openai API. This fetches all the questions and votes so far, then uses openai
     ChatCompletion to get a reply from ChatGPT.
@@ -40,14 +41,17 @@ def chatgpt():
     question_regex = r"Question \d+: (.+)"
     option_regex = r"[A-Z]\).*"
 
-    if len(request.json) > 0:
-        data = request.get_json()
+    data = request.get_json()
+    if "num_of_votes" in data:
+        content = ""
+        for i in range(0, data["num_of_votes"]):
+            content += f"{chr(65+i)}: {data['votes'][chr(65+i)]}, "
+
         votes = {
             "role": "user",
-            "content": f"A: {data['A']}, B: {data['B']}, C: {data['C']}, D: {data['D']}",
+            "content": content,
         }
         messages.append(votes)
-    print(messages)
     chat = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=messages)
     chatgpt_reply = chat.choices[0].message["content"]
 
@@ -57,7 +61,7 @@ def chatgpt():
 
     reply = {"role": "assistant", "content": chat.choices[0].message["content"]}
     messages.append(reply)
-
+    print(messages)
     rsp = {"Success": True}
     if len(activity_matches) == 0:
         rsp["Question"] = question_matches[0]
@@ -73,4 +77,5 @@ def chatgpt():
         rsp["Activities"] = {}
         for i in range(len(activity_matches)):
             rsp["Activities"][f"Activity: {i + 1}"] = activity_matches[i]
+
     return jsonify(rsp), 200
