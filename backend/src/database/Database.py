@@ -49,13 +49,16 @@ class Database:
         self, room_id: str, pipeline: redis.Redis.pipeline = None
     ) -> int:
         # returns number of rooms deleted
-        return pipeline.delete(room_id)
+        num_deleted = pipeline.delete(room_id)
+        pipeline.execute()
+        return num_deleted
 
     @redis_pipeline
     def get_users(
         self, room_id: str, pipeline: redis.Redis.pipeline = None
     ) -> List[Dict[str, str]]:
         room = self.query_room_data(room_id=room_id, pipeline=pipeline)
+        pipeline.execute()
         return [user.to_dict() for user in room.users]
 
     @redis_pipeline
@@ -70,6 +73,7 @@ class Database:
         new_user = User(user_id=user_id, user_name=username)
         room.add_user(new_user)
         self.store_room_data(room_id=room_id, room_data=room, pipeline=pipeline)
+        pipeline.execute()
         return len(room.users)
 
     @redis_pipeline
@@ -79,6 +83,7 @@ class Database:
         room = self.query_room_data(room_id=room_id, pipeline=pipeline)
         room.remove_user_from_id(user_id=user_id)
         self.store_room_data(room_id=room_id, room_data=room, pipeline=pipeline)
+        pipeline.execute()
         return len(room.users)
 
     @redis_pipeline
@@ -86,6 +91,7 @@ class Database:
         self, room_id: str, pipeline: redis.Redis.pipeline = None
     ) -> List[Dict[str, Union[str, List[Dict[str, Union[str, int]]]]]]:
         room = self.query_room_data(room_id=room_id, pipeline=pipeline)
+        pipeline.execute()
         return [question.to_dict() for question in room.questions]
 
     @redis_pipeline
@@ -100,6 +106,7 @@ class Database:
         room = self.query_room_data(room_id=room_id, pipeline=pipeline)
         room.add_question(question=question)
         self.store_room_data(room_id=room_id, room_data=room, pipeline=pipeline)
+        pipeline.execute()
         return len(room.questions)
 
     @redis_pipeline
@@ -108,6 +115,7 @@ class Database:
     ) -> List[Dict]:
         room = self.query_room_data(room_id=room_id, pipeline=pipeline)
         question = room.get_question_from_id(question_id=question_id)
+        pipeline.execute()
         return [option.to_dict() for option in question.options]
 
     @redis_pipeline
@@ -124,6 +132,7 @@ class Database:
         question = room.get_question_from_id(question_id=question_id)
         question.add_option(option=option)
         self.store_room_data(room_id=room_id, room_data=room, pipeline=pipeline)
+        pipeline.execute()
         return len(question.options)
 
     @redis_pipeline
@@ -137,6 +146,7 @@ class Database:
         room = self.query_room_data(room_id=room_id, pipeline=pipeline)
         question = room.get_question_from_id(question_id=question_id)
         option = question.get_option_by_id(option_id=option_id)
+        pipeline.execute()
         return option.current_votes
 
     @redis_pipeline
@@ -153,6 +163,7 @@ class Database:
         option = question.get_option_by_id(option_id=option_id)
         option.add_vote(num_votes=num_votes)
         self.store_room_data(room_id=room_id, room_data=room, pipeline=pipeline)
+        pipeline.execute()
         return option.current_votes
 
     @redis_pipeline
@@ -162,4 +173,5 @@ class Database:
         room = self.query_room_data(room_id=room_id, pipeline=pipeline)
         room.last_activity = activity_time
         self.store_room_data(room_id=room_id, room_data=room, pipeline=pipeline)
+        pipeline.execute()
         return activity_time
