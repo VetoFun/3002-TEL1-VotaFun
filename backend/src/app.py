@@ -7,13 +7,18 @@ from backend.src.routes.user import user_blueprint
 
 # from backend.src.database.Database import Database
 
-app = Flask(__name__)
-app.config["SECRET_KEY"] = os.getenv("FLASK_SECRET_KEY")
-# app.database = Database()
 
-app.register_blueprint(chatgpt_blueprint)
-app.register_blueprint(room_blueprint)
-app.register_blueprint(user_blueprint)
+def create_app():
+    app = Flask(__name__)
+    app.config["SECRET_KEY"] = os.getenv("FLASK_SECRET_KEY")
+    # app.database = Database()
+
+    app.register_blueprint(chatgpt_blueprint)
+    app.register_blueprint(room_blueprint)
+    app.register_blueprint(user_blueprint)
+
+    return app
+
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    create_app().run(debug=True)
