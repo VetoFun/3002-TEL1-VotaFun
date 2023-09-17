@@ -13,7 +13,7 @@ def get_all_users_route(room_id: str):
     database = current_app.database
     try:
         results = get_all_users_func(room_id, database)
-        jsonify(results), 200
+        return jsonify(results), 200
     except Exception:
         return {"success": False, "error": "Internal Server Error"}, 500
 

@@ -57,12 +57,12 @@ def test_join_room_success(test_client):
 
 def test_get_all_users_success(test_client):
     room_id = test_create_room_success(test_client)
-    response = test_client.get(f"/rooms/{room_id}/users")
+    response = test_client.get(f"/rooms/{room_id}/getusers")
     response_data = response.get_json()
     assert response.status_code == 200 and len(response_data["users"]) == 1
 
 
 def test_get_all_users_fail(test_client):
-    response = test_client.get("/rooms/aucsdjhbd/users")
+    response = test_client.get("/rooms/aucsdjhbd/getusers")
     response_data = response.get_json()
     assert response.status_code == 500 and "error" in response_data
