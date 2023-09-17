@@ -14,9 +14,9 @@
                 "PROJECT_PATH": "backend"
             },
             "scripts": {
-                "test": "flake8 . && pytest tests/ -v"
+                "test": "flake8 . && pytest tests/ -v -s"
             },
-            "addons":[
+            "addons": [
                 "heroku-redis:in-dyno"
             ]
         }
