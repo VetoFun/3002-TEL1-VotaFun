@@ -11,7 +11,8 @@
         "test": {
             "env": {
                 "APP_SETTINGS": "src.config.TestingConfig",
-                "PROJECT_PATH": "backend"
+                "PROJECT_PATH": "backend",
+                "REDIS_VERSION": "7.0"
             },
             "scripts": {
                 "test": "flake8 . && pytest tests/ -v -s"
