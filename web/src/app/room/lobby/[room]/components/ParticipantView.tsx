@@ -2,12 +2,12 @@ import { useRoomStore } from '@/stores/useRoomStore';
 import { Label } from './Label';
 
 const ParticipantView = () => {
-  const [activity, location] = useRoomStore((state) => [state.activity, state.location]);
+  const room = useRoomStore((state) => state.room);
 
   return (
     <>
-      <Label label="Location" text={location} />
-      <Label label="Activity" text={activity} />
+      <Label label="Location" text={room?.location || ''} />
+      <Label label="Activity" text={room?.activity || ''} />
     </>
   );
 };
