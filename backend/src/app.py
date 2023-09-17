@@ -14,7 +14,7 @@ def create_app():
     app_settings = os.environ.get("APP_SETTINGS", "src.config.DevelopmentConfig")
     app.config.from_object(app_settings)
     print(
-        f"redis url: {app.config['DATABASE_URL']}, {os.environ.get('REDIS_URL', 'no exist')}"
+        f"redis url: {app.config['REDIS_URL']}, {os.environ.get('REDIS_URL', 'no exist')}"
     )
     print(f"database url: {os.environ.get('DATABASE_URL', 'no exist')}")
     CORS(app, supports_credentials=True)
