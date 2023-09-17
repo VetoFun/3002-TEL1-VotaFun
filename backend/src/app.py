@@ -13,10 +13,7 @@ def create_app():
     app = Flask(__name__)
     app_settings = os.environ.get("APP_SETTINGS", "src.config.DevelopmentConfig")
     app.config.from_object(app_settings)
-    print(
-        f"redis url: {app.config['REDIS_URL']}, {os.environ.get('REDIS_URL', 'no exist')}"
-    )
-    print(f"database url: {os.environ.get('DATABASE_URL', 'no exist')}")
+    print(f"redis url: {app.config['REDIS_URL']}")
     CORS(app, supports_credentials=True)
     app.config["SECRET_KEY"] = os.getenv("FLASK_SECRET_KEY", "")
 
