@@ -15,7 +15,10 @@
             },
             "scripts": {
                 "test": "flake8 . && pytest tests/ -v"
-            }
+            },
+            "addons":[
+                "heroku-redis:in-dyno"
+            ]
         }
     }
 }
