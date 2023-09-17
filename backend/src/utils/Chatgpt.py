@@ -5,6 +5,14 @@ from src.logger import logger
 
 
 def chatgpt_func(data, database):
+    """
+    Calls OpenAI API to get questions and recommended activities. Stores the previous votes into the database, and
+    returns a JSON with the current question and options.
+    :param data: JSON of the request body.
+    :param database: Application database.
+    :return: JSON with "success" == True, and the questions and options if success,
+    otherwise "success" == False with an error is returned.
+    """
     room_id = data["room_id"]
 
     # get the room dictionary
@@ -13,7 +21,7 @@ def chatgpt_func(data, database):
         room_location = room["room_location"]
         room_activity = room["room_activity"]
     except KeyError:
-        return {"success": False, "error": "Internal Server Error"}
+        raise
 
     # initial prompt
     messages = [
@@ -30,10 +38,10 @@ def chatgpt_func(data, database):
             f"questions and votes.\n"
             f"Always format questions and options like this: "
             f"Question <x>: <question>\n"
-            f"<A>) <option A>\n"
-            f"<B>) <option B>\n"
-            f"<C>) <option C>\n"
-            f"<D>) <option D>\n"
+            f"<1>) <option 1>\n"
+            f"<2>) <option 2>\n"
+            f"<3>) <option 3>\n"
+            f"<4>) <option 4>\n"
             f"After 5 questions, suggest 4 {room_activity} activities that we are thinking of doing in "
             f"{room_location} Singapore in this format:"
             f"Activity <x>: <activity>\n"
@@ -47,7 +55,7 @@ def chatgpt_func(data, database):
     # regexes to extract information Chatgpt returns
     activity_regex = r"Activity \d+: (.+)"
     question_regex = r"Question \d+: (.+)"
-    option_regex = r".*[A-Z].*\).*"
+    option_regex = r".*[0-9].*\).*"
 
     # adding the past questions asked by chatGPT and their votes
     past_questions = room["questions"]
@@ -75,11 +83,16 @@ def chatgpt_func(data, database):
     if "num_of_votes" in data:
         content = ""
         for i in range(0, data["num_of_votes"]):
-            content += f"{chr(65 + i)}) {data['votes'][chr(65 + i)]}\n"
+            # content += f"{chr(65 + i)}) {data['votes'][chr(65 + i)]}\n"
+            content += f"{i + 1}) {data['votes'][str(i + 1)]}\n"
 
             # update votes in question
             database.set_vote(
-                room_id, data["question_id"], chr(65 + i), data["votes"][chr(65 + i)]
+                # room_id, data["question_id"], chr(65 + i), data["votes"][chr(65 + i)]
+                room_id,
+                data["question_id"],
+                str(i + 1),
+                data["votes"][str(i + 1)],
             )
         votes = {
             "role": "user",
@@ -90,10 +103,10 @@ def chatgpt_func(data, database):
             "valid options A to D to choose from. \n"
             "The format is:"
             "Question <x>: <question>\n"
-            "<A>) <option A>\n"
-            "<B>) <option B>\n"
-            "<C>) <option C>\n"
-            "<D>) <option D>\n"
+            "<1>) <option 1>\n"
+            "<2>) <option 2>\n"
+            "<3>) <option 3>\n"
+            "<4>) <option 4>\n"
             "Do not repeat or ask similar questions with their options."
             "Do not give open-ended questions, only multiple choice with options to choose."
             "Options given must be based on the question.",
@@ -105,7 +118,7 @@ def chatgpt_func(data, database):
         chat = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=messages)
         chatgpt_reply = chat.choices[0].message["content"]
     except Exception:
-        return {"success": False, "error": "Internal Server Error"}
+        raise
 
     logger.info(f"{chatgpt_reply}")
 
@@ -131,11 +144,12 @@ def chatgpt_func(data, database):
 
         for i in option_matches:
             option_extraction_regex = r"\s[A-Za-z].*"
-            option_id_extraction_regex = r"[A-Z]"
+            option_id_extraction_regex = r"[0-9]"
             option = re.search(option_extraction_regex, i).group(0)
             option_id = re.search(option_id_extraction_regex, i).group(0)
 
             rsp["options"][option_id] = option
+            print(rsp)
             # store options in database
             database.add_option(room_id, rsp["question_id"], option_id, option)
     # end of the 5th question

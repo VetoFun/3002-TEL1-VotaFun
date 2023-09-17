@@ -4,9 +4,9 @@ from flask_cors import CORS
 
 from src.database.Database import Database
 
-from backend.src.routes.Chatgpt import chatgpt_blueprint
-from backend.src.routes.Room import room_blueprint
-from backend.src.routes.User import user_blueprint
+from src.routes.Room import room_blueprint
+from src.routes.User import user_blueprint
+from src.routes.Chatgpt import chatgpt_blueprint
 
 
 def create_app():
@@ -23,9 +23,10 @@ def create_app():
     )
 
     app.database = database
-    app.register_blueprint(chatgpt_blueprint)
+
     app.register_blueprint(room_blueprint)
     app.register_blueprint(user_blueprint)
+    app.register_blueprint(chatgpt_blueprint)
 
     return app
 

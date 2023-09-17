@@ -94,6 +94,7 @@ class Room:
         for user in self.users:
             if user.id == user_id:
                 self.users.remove(user)
+                self.number_of_user -= 1
                 return len(self.users)
         raise KeyError(f"User {user_id} does not exist in room {self.room_id}")
 
