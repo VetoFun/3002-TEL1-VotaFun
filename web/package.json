@@ -11,9 +11,6 @@
     "test": "jest --watch",
     "prepare": "cd .. && husky install web/.husky"
   },
-  "engines": {
-    "node": ">=16 <17"
-  },
   "dependencies": {
     "@types/node": "20.6.0",
     "@types/react": "18.2.21",
