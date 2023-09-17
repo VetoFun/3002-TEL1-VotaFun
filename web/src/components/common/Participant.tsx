@@ -1,3 +1,4 @@
+import { useDebugStore } from '@/stores/useDebugStore';
 import { useRoomStore } from '@/stores/useRoomStore';
 import { useSearchParams } from 'next/navigation';
 import { FaBan, FaCrown } from 'react-icons/fa';
@@ -9,9 +10,7 @@ interface ParticipantProps {
 }
 
 function Participant({ initial, name, host }: ParticipantProps) {
-
-  const query = useSearchParams();
-  const isRoomHost = useRoomStore((state) => state.isHost) || query.get('host') === 'true'; // [todo: remove (debugging purposes)]
+  const isRoomHost = useDebugStore((state) => state.admin);
 
   return (
     <div className="group flex w-full gap-2 px-4 py-2 align-middle transition-colors hover:bg-base-content group-hover:text-neutral-focus">
@@ -28,7 +27,7 @@ function Participant({ initial, name, host }: ParticipantProps) {
       <div className="flex flex-1 justify-between">
         <p className="my-auto group-hover:text-neutral-focus">{name}</p>
         {isRoomHost && <div className="tooltip tooltip-error tooltip-left flex flex-col justify-center" data-tip="Kick User">
-          <button className="btn btn-circle btn-error btn-xs"><FaBan/></button>
+          <button  className="btn btn-circle btn-error btn-xs"><FaBan/></button>
         </div>}
       </div>
     </div>
