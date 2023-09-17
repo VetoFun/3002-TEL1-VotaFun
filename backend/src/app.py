@@ -8,6 +8,8 @@ from src.routes.Room import room_blueprint
 from src.routes.User import user_blueprint
 from src.routes.Chatgpt import chatgpt_blueprint
 
+from src.sockets.sockets import socketio
+
 
 def create_app():
     app = Flask(__name__)
@@ -32,4 +34,6 @@ def create_app():
 
 
 if __name__ == "__main__":
-    create_app().run()  # use flask run --debug --port=<your port>
+    app = create_app()
+    socketio.init_app(app)
+    socketio.run(app, debug=True)  # use flask run --debug --port=<your port>
