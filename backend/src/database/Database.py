@@ -2,7 +2,7 @@ import redis
 import json
 from typing import List, Dict, Union
 
-from .logger import logger
+from src.logger import logger
 from .Option import Option
 from .Question import Question
 from .Room import Room
@@ -14,7 +14,7 @@ class Database:
         self, redis_url: str = "", redis_host: str = "localhost", redis_port: int = 6379
     ) -> None:
         if not redis_url:
-            redis_url = f"redis://{redis_host}:{redis_port}"
+            redis_url = f"redis://@{redis_host}:{redis_port}"
         self.r = redis.from_url(redis_url)
 
     def query_room_data(self, room_id: str, return_dict=False) -> Union[Room, Dict]:
@@ -50,7 +50,7 @@ class Database:
         self.store_room_data(room_id=room_id, room_data=room)
         return len(room.users)
 
-    def remove_user(self, room_id: str, user_id: str) -> None:
+    def remove_user(self, room_id: str, user_id: str) -> int:
         room = self.query_room_data(room_id=room_id)
         room.remove_user_from_id(user_id=user_id)
         self.store_room_data(room_id=room_id, room_data=room)
@@ -97,6 +97,16 @@ class Database:
         question = room.get_question_from_id(question_id=question_id)
         option = question.get_option_by_id(option_id=option_id)
         option.add_vote(num_votes=num_votes)
+        self.store_room_data(room_id=room_id, room_data=room)
+        return option.current_votes
+
+    def set_vote(
+        self, room_id: str, question_id: str, option_id: str, num_votes: int
+    ) -> int:
+        room = self.query_room_data(room_id=room_id)
+        question = room.get_question_from_id(question_id=question_id)
+        option = question.get_option_by_id(option_id=option_id)
+        option.set_vote(num_votes=num_votes)
         self.store_room_data(room_id=room_id, room_data=room)
         return option.current_votes
 
