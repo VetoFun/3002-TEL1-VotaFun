@@ -12,10 +12,7 @@ from src.routes.Chatgpt import chatgpt_blueprint
 def create_app():
     app = Flask(__name__)
     app_settings = os.environ.get("APP_SETTINGS", "src.config.DevelopmentConfig")
-    print(os.environ)
     app.config.from_object(app_settings)
-    print(f"redis url: {app.config['REDIS_URL']}")
-    print(f"app settings: {app_settings}")
     CORS(app, supports_credentials=True)
     app.config["SECRET_KEY"] = os.getenv("FLASK_SECRET_KEY", "")
 
