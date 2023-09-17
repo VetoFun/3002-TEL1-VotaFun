@@ -5,6 +5,9 @@
         },
         {
             "url": "heroku/python"
+        },
+        {
+            "url": "https://github.com/heroku/heroku-buildpack-ci-redis.git"
         }
     ],
     "environments": {
@@ -16,10 +19,7 @@
             },
             "scripts": {
                 "test": "flake8 . && pytest tests/ -v -s"
-            },
-            "addons": [
-                "heroku-redis:in-dyno"
-            ]
+            }
         }
     }
 }
