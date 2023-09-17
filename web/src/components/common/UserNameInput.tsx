@@ -7,13 +7,11 @@ const UserNameInput = () => {
 
   const [roomId, userName, setUserName] = useRoomStore((state) => [state.roomId, state.userName, state.setUserName]);
 
-  console.log(userName)
-
   return (
     <div className="flex w-full gap-x-2">
       <input
         type="text"
-        className={`input input-bordered h-auto flex-1 uppercase`}
+        className={`input input-bordered h-auto flex-1`}
         placeholder="Enter Username"
         onChange={(e) => {
           setUserName(e.target.value)
@@ -26,7 +24,7 @@ const UserNameInput = () => {
         data-for="room-code-empty"
         href={`/room/lobby/${roomId}`}
       >
-        Join ({userName})
+        Join
       </Link>
     </div>
   );
