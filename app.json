@@ -1,0 +1,25 @@
+{
+    "buildpacks": [
+        {
+            "url": "https://github.com/timanovsky/subdir-heroku-buildpack.git"
+        },
+        {
+            "url": "heroku/python"
+        },
+        {
+            "url": "https://github.com/heroku/heroku-buildpack-ci-redis.git"
+        }
+    ],
+    "environments": {
+        "test": {
+            "env": {
+                "APP_SETTINGS": "src.config.TestingConfig",
+                "PROJECT_PATH": "backend",
+                "REDIS_VERSION": "7.0"
+            },
+            "scripts": {
+                "test": "flake8 . && pytest tests/ -v -s"
+            }
+        }
+    }
+}
