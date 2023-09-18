@@ -44,12 +44,11 @@ def chatgpt_func(data, database):
             f"<option 2>) <number of votes for 2>\n"
             f"<option 3>) <number of votes for 3>\n"
             f"<option 4>) <number of votes for 4>\n"
-            f"Finally give us suggested {room_activity} activity in {room_location} Singapore using this"
-            f"format.\n"
+            f"After 5 questions, based on the votes suggest 4 {room_activity} activity in {room_location} Singapore "
+            f"using this format.\n"
             f"Activity x: <activity name>\n"
-            f"You do not need to show the votes at the end. Only suggest activities receiving the votes for"
-            f"question 5. The activity suggested must be in Singapore and only show me the suggested"
-            f"activity.",
+            f"You do not need to show the votes at the end. Only suggest 4 activities after question 5. The 4 activity "
+            f"suggested must be in Singapore and only show me the suggested activities.",
         }
     ]
 
@@ -102,8 +101,13 @@ def chatgpt_func(data, database):
             "content": content
             + "We are indecisive so give us a properly formatted question "
             "with 4 options to vote. Remember do not repeat or ask similar questions and options. "
-            "Suggest activities after the question number 5 and stop asking questions and options "
-            "after question 5.",
+            "Suggest 4 activities after question 5 and stop asking questions and options."
+            "Format the questions in this manner: \n"
+            "Question <x>: <question>\n"
+            "1) <option 1>\n"
+            "2) <option 2>\n"
+            "3) <option 3>\n"
+            "4) <option 4>\n",
         }
         messages.append(votes)
 
