@@ -9,7 +9,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - WATCHPACK_POLLING=true    
+      - WATCHPACK_POLLING=true
 
   backend:
     build:
@@ -18,7 +18,7 @@ services:
     volumes:
       - ./backend/src:/app/
     ports:
-      - "5000:5000"
+      - "5001:5000"
     env_file:
       - ./backend/.env
     depends_on:

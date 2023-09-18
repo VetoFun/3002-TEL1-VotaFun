@@ -14,7 +14,7 @@ def create_app():
     app_settings = os.environ.get("APP_SETTINGS", "src.config.DevelopmentConfig")
     app.config.from_object(app_settings)
     CORS(app, supports_credentials=True)
-    app.config["SECRET_KEY"] = os.getenv("FLASK_SECRET_KEY")
+    app.config["SECRET_KEY"] = os.getenv("FLASK_SECRET_KEY", "")
 
     database = Database(
         redis_url=app.config["REDIS_URL"],
@@ -32,4 +32,4 @@ def create_app():
 
 
 if __name__ == "__main__":
-    create_app().run(debug=True)
+    create_app().run()  # use flask run --debug --port=<your port>
