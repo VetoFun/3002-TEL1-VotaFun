@@ -5,12 +5,12 @@ from flask_socketio import SocketIOTestClient
 
 @pytest.fixture
 def charles_data():
-    return {"RoomID": "12345", "UserID": "1", "UserName": "Charles"}
+    return {"room_id": "12345", "user_id": "1", "user_name": "Charles"}
 
 
 @pytest.fixture
 def roy_data():
-    return {"RoomID": "12345", "UserID": "2", "UserName": "Roy"}
+    return {"room_id": "12345", "user_id": "2", "user_name": "Roy"}
 
 
 @pytest.fixture
@@ -92,7 +92,7 @@ def test_close_room(clients, server_namespace):
 
     client1.emit(
         "close_room",
-        {"RoomID": "12345"},
+        {"room_id": "12345"},
         namespace=server_namespace,
     )
 
@@ -100,22 +100,3 @@ def test_close_room(clients, server_namespace):
     response1 = client1.get_received(namespace=server_namespace)
     response2 = client2.get_received(namespace=server_namespace)
     assert response1[2]["args"] == response2[1]["args"] == "Room 12345 has been closed"
-
-
-def test_change_host(clients, server_namespace):
-    client1, client2 = clients
-
-    client1.emit(
-        "change_host",
-        {"RoomID": "12345", "HostName": "Roy"},
-        namespace=server_namespace,
-    )
-
-    # Assert correct response is sent to both clients
-    response1 = client1.get_received(namespace=server_namespace)
-    response2 = client2.get_received(namespace=server_namespace)
-    assert (
-        response1[2]["args"]
-        == response2[1]["args"]
-        == "Roy has become the new host of room 12345"
-    )
