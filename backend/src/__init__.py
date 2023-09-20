@@ -4,13 +4,11 @@ from flask_socketio import SocketIO
 from flask_cors import CORS
 
 from src.database.Database import Database
-
 from src.routes.Room import room_blueprint
 from src.routes.User import user_blueprint
 from src.routes.Chatgpt import chatgpt_blueprint
 
 socketio = SocketIO(cors_allowed_origins="*")
-
 
 def create_app():
     app = Flask(__name__)
@@ -32,5 +30,7 @@ def create_app():
     app.register_blueprint(user_blueprint)
     app.register_blueprint(chatgpt_blueprint)
 
+    from src.sockets.sockets import RoomManagement
+    socketio.on_namespace(RoomManagement('/room-management'))
     socketio.init_app(app)
     return app

@@ -6,7 +6,7 @@ import { io } from 'socket.io-client';
 export default function Home() {
   useEffect(() => {
     // Replace 'http://localhost:5000' with your Flask SocketIO server URL
-    const socket = io('http://127.0.0.1:5001');
+    const socket = io('http://localhost:5001/room-management');
 
     // Event handler for when the client is connected to the server
     socket.on('connect', () => {
@@ -14,9 +14,7 @@ export default function Home() {
     });
 
     // Event handler for custom events from the server
-    socket.on('custom_event', (data) => {
-      console.log('Received custom event:', data);
-    });
+    socket.emit('join_room', { RoomID: 'room1', UserName: 'm_sifii' });
 
     socket.on('connect_error', (err) => {
       console.log(`connect_error due to ${err.message}`);
