@@ -1,5 +1,4 @@
 from flask import Flask
-import flask_socketio
 import os
 from flask_cors import CORS
 
@@ -8,6 +7,8 @@ from src.database.Database import Database
 from src.routes.Room import room_blueprint
 from src.routes.User import user_blueprint
 from src.routes.Chatgpt import chatgpt_blueprint
+
+from src.sockets.sockets import socketio
 
 
 def create_app():
@@ -32,7 +33,6 @@ def create_app():
     return app
 
 
-socketio = flask_socketio.SocketIO(cors_allowed_origins="*")
 app = create_app()
 socketio.init_app(app)
 

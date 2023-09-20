@@ -1,7 +1,9 @@
 from flask import request
 import flask_socketio
-from src.app import socketio, app
+from flask import current_app as app
 from src.logger import logger
+
+socketio = flask_socketio.SocketIO(cors_allowed_origins="*")
 
 
 @socketio.on("connect")
@@ -14,29 +16,29 @@ def handle_connect():
 def handle_disconnect():
     logger.info(f"Socket disconnected: {request.sid}")
 
-    rooms = flask_socketio.rooms()
-
-    for room in rooms:
-        try:
-            room_data = app.database.query_room_data(room_id=room)
-        except KeyError:
-            continue
-
-        if room_data is None:
-            continue
+    try:
+        # room before disconnect
+        room_id = app.database.query_room_id_from_user_id(user_id=request.sid)
+        room_data = app.database.query_room_data(room_id=room_id)
 
         if room_data.host_id == request.sid:
             # Change host
             if len(room_data.users) > 1:
                 room_data.host_id = room_data.users[1].user_id
-                app.database.store_room_data(room_id=room, room_data=room_data)
+                new_host_name = room_data.users[1].user_name
+                app.database.store_room_data(room_id=room_id, room_data=room_data)
+                flask_socketio.send(
+                    f"Host changed to {new_host_name}",
+                    to=room_id,
+                    namespace="/server/room_management",
+                )
+                # Remove user
+                app.database.remove_user(room_id=room_id, user_id=request.sid)
             else:
-                app.database.remove_room_data(room_id=room)
-                flask_socketio.send(f"Room {room} has been closed", broadcast=True)
-                continue
-
-        # Remove user
-        app.database.remove_user(room_id=room, user_id=request.sid)
+                app.database.remove_room_data(room_id=room_id)
+                flask_socketio.send(f"Room {room_id} has been closed", broadcast=True)
+    except KeyError:
+        pass
 
     flask_socketio.send("Socket disconnected successfully")
 

@@ -115,3 +115,11 @@ class Database:
         room.last_activity = activity_time
         self.store_room_data(room_id=room_id, room_data=room)
         return activity_time
+
+    def query_room_id_from_user_id(self, user_id: str) -> str:
+        for room_id in self.r.scan_iter():
+            room = self.query_room_data(room_id=room_id)
+            for user in room.users:
+                if user.user_id == user_id:
+                    return room_id
+        raise KeyError(f"User {user_id} does not exist in any room")
