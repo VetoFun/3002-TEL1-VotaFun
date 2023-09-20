@@ -1,6 +1,7 @@
 import pytest
-from src.app import create_app, socketio
 from flask_socketio import SocketIOTestClient
+
+from src.app import create_app, socketio
 from src.database.Database import Database
 from src.database.User import User
 
@@ -17,7 +18,7 @@ def roy_data():
 
 @pytest.fixture
 def server_namespace():
-    return "/server/room_management"
+    return "/room-management"
 
 
 def _create_room_with_2_people(
@@ -70,10 +71,10 @@ def test_join_room(clients, server_namespace):
 
     # Assert correct response is sent to both clients
     response1 = client1.get_received(namespace=server_namespace)
-    assert response1[0]["args"] == "Charles has joined the room 12345"
+    assert response1[1]["args"] == "Charles has joined the room 12345"
     response2 = client2.get_received(namespace=server_namespace)
     assert (
-        response1[1]["args"] == response2[0]["args"] == "Roy has joined the room 12345"
+        response1[2]["args"] == response2[1]["args"] == "Roy has joined the room 12345"
     )
 
 
@@ -92,7 +93,7 @@ def test_leave_room(clients, server_namespace, charles_data):
 
     # Assert correct response is sent to client2 (still in the room)
     response2 = client2.get_received(namespace=server_namespace)
-    assert response2[1]["args"] == "Charles has left the room 12345"
+    assert response2[2]["args"] == "Charles has left the room 12345"
 
 
 def test_close_room(clients, server_namespace):
@@ -107,7 +108,7 @@ def test_close_room(clients, server_namespace):
     # Assert correct response is sent to both clients
     response1 = client1.get_received(namespace=server_namespace)
     response2 = client2.get_received(namespace=server_namespace)
-    assert response1[2]["args"] == response2[1]["args"] == "Room 12345 has been closed"
+    assert response1[3]["args"] == response2[2]["args"] == "Room 12345 has been closed"
 
 
 def test_change_host(clients, server_namespace, mocker):
@@ -121,6 +122,6 @@ def test_change_host(clients, server_namespace, mocker):
     ]
     mock_database.query_room_data.return_value.host_id.__eq__.return_value = True
 
-    client1.disconnect()
+    client1.disconnect(namespace=server_namespace)
     response2 = client2.get_received(namespace=server_namespace)
-    assert response2[1]["args"] == "Host changed to Roy"
+    assert response2[2]["args"] == "Host changed to Roy"
