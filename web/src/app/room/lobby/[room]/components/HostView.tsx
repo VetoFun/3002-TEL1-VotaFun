@@ -1,6 +1,7 @@
 import { useRoomStore } from '@/stores/useRoomStore';
 import { Select } from './Select';
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 
 const HostView = () => {
   const locations = ['Central', 'East', 'North', 'North-East', 'West'];
@@ -22,7 +23,9 @@ const HostView = () => {
     <div className="flex flex-col gap-2">
       <Select label="Select Location" options={locations} onChange={(e) => setLocation(e.target.value)} />
       <Select label="Select Activity" options={activities} onChange={(e) => setActivity(e.target.value)} />
-      <button className="btn btn-neutral text-lg">Start Room</button>
+      <Link className="btn btn-neutral text-lg" href={`/room/session/${useRoomStore.getState().room!.id}`}>
+        Start Room
+      </Link>
     </div>
   );
 };
