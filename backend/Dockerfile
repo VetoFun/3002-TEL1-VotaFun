@@ -11,10 +11,10 @@ COPY requirements.txt ./
 RUN pip install -r requirements.txt
 
 # Copy the entire src directory to the container
-COPY src/ ./
+COPY src/ ./src/
 
 # Expose the port on which your Flask app will run (usually 5000)
 EXPOSE 5000
 
-# Start the Flask app
-CMD ["flask", "run", "--host=0.0.0.0"]
+# Start the Flask app from the src directory
+CMD ["sh", "-c", "cd src && flask run --debug"]

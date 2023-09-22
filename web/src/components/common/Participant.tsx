@@ -1,6 +1,6 @@
 import { useDebugStore } from '@/stores/useDebugStore';
-import { useRoomStore } from '@/stores/useRoomStore';
-import { useSearchParams } from 'next/navigation';
+// import { useRoomStore } from '@/stores/useRoomStore';
+// import { useSearchParams } from 'next/navigation';
 import { FaBan, FaCrown } from 'react-icons/fa';
 
 interface ParticipantProps {
@@ -26,9 +26,13 @@ function Participant({ initial, name, host }: ParticipantProps) {
       </div>
       <div className="flex flex-1 justify-between">
         <p className="my-auto group-hover:text-neutral-focus">{name}</p>
-        {isRoomHost && <div className="tooltip tooltip-error tooltip-left flex flex-col justify-center" data-tip="Kick User">
-          <button  className="btn btn-circle btn-error btn-xs"><FaBan/></button>
-        </div>}
+        {isRoomHost && (
+          <div className="tooltip tooltip-error tooltip-left flex flex-col justify-center" data-tip="Kick User">
+            <button className="btn btn-circle btn-error btn-xs">
+              <FaBan />
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

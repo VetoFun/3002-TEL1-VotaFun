@@ -16,7 +16,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     volumes:
-      - ./backend/src:/app/
+      - ./backend/src:/app/src
     ports:
       - "5001:5000"
     env_file:
