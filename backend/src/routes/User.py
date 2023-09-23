@@ -1,6 +1,8 @@
+from flask import current_app, jsonify, request
+
 from src.routes import user_blueprint
 from src.utils.User import get_all_users_func, change_host_func
-from flask import current_app, jsonify, request
+from src.logger import logger
 
 
 @user_blueprint.route("/rooms/<room_id>/getusers", methods=["GET"])
@@ -14,7 +16,8 @@ def get_all_users_route(room_id: str):
     try:
         results = get_all_users_func(room_id, database)
         return jsonify(results), 200
-    except Exception:
+    except Exception as e:
+        logger.error(e)
         return {"success": False, "error": "Internal Server Error"}, 500
 
 

@@ -5,6 +5,7 @@ from src.utils.Room import (
     join_room_func,
     leave_room_func,
 )
+from src.logger import logger
 from flask import jsonify, request, current_app
 
 
@@ -19,7 +20,8 @@ def create_room_route():
     try:
         result = create_room_func(data, database)
         return jsonify(result), 200
-    except Exception:
+    except Exception as e:
+        logger.error(e)
         return {"success": False, "error": "Internal Server Error"}, 500
 
 
@@ -61,7 +63,8 @@ def join_room_route(room_id: str):
     try:
         result = join_room_func(room_id, data, database)
         return jsonify(result), 200
-    except Exception:
+    except Exception as e:
+        logger.error(e)
         return {"success": False, "error": "Internal Server Error"}, 500
 
 

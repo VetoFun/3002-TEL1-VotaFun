@@ -1,10 +1,10 @@
+import os
 import pytest
-import fakeredis
+import redis
 
 
+# Mock Redis connection for testing
 @pytest.fixture
-def fake_redis():
-    # Create a fakeredis instance
-    fake = fakeredis.FakeStrictRedis(version=7)
-    yield fake
-    fake.flushall()
+def mock_redis():
+    redis_url = os.environ.get("REDIS_URL", "redis://@localhost:6379/0")
+    return redis.StrictRedis.from_url(redis_url)
