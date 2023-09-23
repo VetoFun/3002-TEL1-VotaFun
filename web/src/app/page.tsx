@@ -1,11 +1,8 @@
-'use client';
 
+import { JoinRoomInput } from '@/components/JoinRoomInput';
 import Link from 'next/link';
-import { useState } from 'react';
 
 export default function Home() {
-  const [roomCode, setRoomCode] = useState('');
-
   return (
     <main className="h-screen w-screen bg-base-100">
       <div className="relative left-1/2 top-1/2 flex w-fit -translate-x-1/2 -translate-y-1/2 flex-col gap-2">
@@ -18,17 +15,7 @@ export default function Home() {
           <Link className="btn btn-neutral h-fit w-full py-4 text-lg" href={'/room/create'}>
             Create Room
           </Link>
-          <div className="flex w-full gap-x-2">
-            <input
-              type="text"
-              className="input input-bordered h-auto flex-1 uppercase"
-              placeholder="Enter Room Code"
-              onChange={(e) => setRoomCode(e.target.value)}
-            />
-            <Link className="btn btn-neutral h-fit flex-none py-4 text-lg" href={`/room/join/${roomCode}`}>
-              Join Room
-            </Link>
-          </div>
+          <JoinRoomInput />
         </div>
       </div>
     </main>

@@ -2,7 +2,7 @@ import redis
 import json
 from typing import List, Dict, Union
 
-from ..logger import logger
+from src.logger import logger
 from ..decorators import redis_pipeline
 from .Option import Option
 from .Question import Question
@@ -15,7 +15,7 @@ class Database:
         self, redis_url: str = "", redis_host: str = "localhost", redis_port: int = 6379
     ) -> None:
         if not redis_url:
-            redis_url = f"redis://{redis_host}:{redis_port}"
+            redis_url = f"redis://@{redis_host}:{redis_port}"
         self.r = redis.from_url(redis_url)
 
     def query_room_data(
@@ -166,6 +166,16 @@ class Database:
         pipeline.execute()
         return option.current_votes
 
+    def set_vote(
+        self, room_id: str, question_id: str, option_id: str, num_votes: int
+    ) -> int:
+        room = self.query_room_data(room_id=room_id)
+        question = room.get_question_from_id(question_id=question_id)
+        option = question.get_option_by_id(option_id=option_id)
+        option.set_vote(num_votes=num_votes)
+        self.store_room_data(room_id=room_id, room_data=room)
+        return option.current_votes
+
     @redis_pipeline
     def update_room_activity_time(
         self, room_id: str, activity_time: str, pipeline: redis.Redis.pipeline = None
@@ -175,3 +185,11 @@ class Database:
         self.store_room_data(room_id=room_id, room_data=room, pipeline=pipeline)
         pipeline.execute()
         return activity_time
+
+    def query_room_id_from_user_id(self, user_id: str) -> str:
+        for room_id in self.r.scan_iter():
+            room = self.query_room_data(room_id=room_id)
+            for user in room.users:
+                if user.user_id == user_id:
+                    return room_id
+        raise KeyError(f"User {user_id} does not exist in any room")
