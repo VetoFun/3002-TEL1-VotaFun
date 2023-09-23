@@ -2,7 +2,8 @@ import { useRoomStore } from '@/stores/useRoomStore';
 import { Label } from './Label';
 
 const ParticipantView = () => {
-  const room = useRoomStore((state) => state.room);
+  const [room, user] = useRoomStore((state) => [state.room, state.user]);
+  console.log(`in participant view, socketID: ${user?.id}`);
 
   return (
     <>

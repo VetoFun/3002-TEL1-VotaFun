@@ -7,7 +7,6 @@ import { redirect, useParams } from 'next/navigation';
 import { joinRoom } from '../hooks/joinRoom';
 
 const UserNameInput = () => {
-
   const params = useParams();
   const roomId = params.room as string;
 
@@ -17,19 +16,23 @@ const UserNameInput = () => {
   const [setRoom, setUser] = useRoomStore((state) => [state.setRoom, state.setUser]);
 
   function onClickJoin() {
-    if(!username) return;
-    const user = createUser(username);
-    const room = joinRoom(user, roomId);
-
-    setUser(user);
-    setRoom(room);
-    setReady(true);
+    if (!username) return;
+    createUser(roomId, username)
+      .then((user) => {
+        const room = joinRoom(user, roomId);
+        console.log(user);
+        setUser(user);
+        setRoom(room);
+        setReady(true);
+      })
+      .catch((error) => {
+        console.error('Error creating user:', error);
+      });
   }
 
   useEffect(() => {
-    if(ready)
-      redirect(`/room/lobby/${params.room}`);
- }, [params.room, ready]);
+    if (ready) redirect(`/room/lobby/${params.room}`);
+  }, [params.room, ready]);
 
   return (
     <div className="flex w-full gap-x-2">
@@ -38,7 +41,7 @@ const UserNameInput = () => {
         className={`input input-bordered h-auto flex-1`}
         placeholder="Enter Username"
         onChange={(e) => {
-          setUsername(e.target.value)
+          setUsername(e.target.value);
         }}
         required={true}
       />

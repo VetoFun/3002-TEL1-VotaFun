@@ -1,7 +1,6 @@
-
 type User = {
-    id: number;
-    username: string;
-}
+  id: string;
+  username: string;
+};
 
-export type { User }
+export type { User };
