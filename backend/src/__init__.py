@@ -11,12 +11,9 @@ from src.routes.Chatgpt import chatgpt_blueprint
 socketio = SocketIO(cors_allowed_origins="*")
 
 
-def create_app(testing=False):
+def create_app():
     app = Flask(__name__)
-    if testing:
-        app_settings = app.config.from_object("src.config.TestingConfig")
-    else:
-        app_settings = os.environ.get("APP_SETTINGS", "src.config.DevelopmentConfig")
+    app_settings = os.environ.get("APP_SETTINGS", "src.config.DevelopmentConfig")
     app.config.from_object(app_settings)
     app.config["SECRET_KEY"] = os.getenv("FLASK_SECRET_KEY", "")
 
