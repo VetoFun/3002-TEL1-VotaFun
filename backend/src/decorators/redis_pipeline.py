@@ -16,6 +16,8 @@ def redis_pipeline(func):
                     return func(self, pipeline=pipe, *args, **kwargs)
                 except redis.exceptions.WatchError:
                     continue
-        raise Exception("Watch operation failed 5 times consecutively.")
+        raise Exception(
+            f"Watch operation failed {Config.WATCH_ERROR_RETRIES} times consecutively."
+        )
 
     return wrapper

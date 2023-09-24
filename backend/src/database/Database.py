@@ -2,7 +2,7 @@ import redis
 import json
 from typing import List, Dict, Union, Tuple
 
-from src.logger import logger
+from ..logger import logger
 from ..decorators import redis_pipeline
 from .Option import Option
 from .Question import Question
@@ -31,10 +31,8 @@ class Database:
         return room
 
     def store_room_data(
-        self, room_id: str, room_data: Room, pipeline: redis.Redis.pipeline = None
+        self, room_id: str, room_data: Room, pipeline: redis.Redis.pipeline
     ) -> None:
-        if not pipeline:
-            raise ValueError("Redis pipeline has to be provided")
         # Store room data in Redis Hash
         for key, value in room_data.to_dict().items():
             pipeline.hset(room_id, key, json.dumps(value))
@@ -42,13 +40,10 @@ class Database:
         logger.info(f"Room {room_id} successfully stored.")
 
     @redis_pipeline
-    def remove_room_data(
-        self, room_id: str, pipeline: redis.Redis.pipeline = None
-    ) -> int:
+    def remove_room_data(self, room_id: str, pipeline: redis.Redis.pipeline) -> int:
         # returns number of rooms deleted
-        num_deleted = pipeline.delete(room_id)
-        pipeline.execute()
-        return num_deleted
+        pipeline.delete(room_id)
+        return pipeline.execute()[0]
 
     def get_users(self, room_id: str) -> List[Dict[str, str]]:
         room = self.query_room_data(room_id=room_id)
@@ -60,9 +55,11 @@ class Database:
         room_id: str,
         user_id: str,
         username: str,
-        pipeline: redis.Redis.pipeline = None,
+        pipeline: redis.Redis.pipeline,
     ) -> int:
-        room = self.query_room_data(room_id=room_id, pipeline=pipeline)
+        room = self.query_room_data(room_id=room_id)
+        if room.get_number_of_user() == room.get_max_capacity():
+            raise Exception(f"Room {room_id} is at max capacity")
         new_user = User(user_id=user_id, user_name=username)
         room.add_user(new_user)
         self.store_room_data(room_id=room_id, room_data=room, pipeline=pipeline)
@@ -70,16 +67,18 @@ class Database:
 
     @redis_pipeline
     def remove_user(
-        self, room_id: str, user_id: str, pipeline: redis.Redis.pipeline = None
-    ) -> None:
-        room = self.query_room_data(room_id=room_id, pipeline=pipeline)
+        self, room_id: str, user_id: str, pipeline: redis.Redis.pipeline
+    ) -> Tuple[int, bool]:
+        room = self.query_room_data(room_id=room_id)
+        is_host = False
         try:
             room.remove_user_from_id(user_id=user_id)
+            is_host = user_id == room.host_id
         except KeyError as e:
             logger.error(e)
-            return len(room.users)
+            return len(room.users), False
         self.store_room_data(room_id=room_id, room_data=room, pipeline=pipeline)
-        return len(room.users)
+        return len(room.users), is_host
 
     def get_questions(
         self, room_id: str
@@ -94,7 +93,7 @@ class Database:
         question_id: str,
         question_text: str,
         options: List[Tuple[str, str]],
-        pipeline: redis.Redis.pipeline = None,
+        pipeline: redis.Redis.pipeline,
     ) -> int:
         question = Question(question_id=question_id, question_text=question_text)
         for option_id, option_text in options:
@@ -116,7 +115,7 @@ class Database:
         question_id: str,
         option_id: str,
         option_text: str,
-        pipeline: redis.Redis.pipeline = None,
+        pipeline: redis.Redis.pipeline,
     ) -> int:
         option = Option(option_id=option_id, option_text=option_text)
         room = self.query_room_data(room_id=room_id, pipeline=pipeline)
@@ -142,8 +141,8 @@ class Database:
         room_id: str,
         question_id: str,
         option_id: str,
+        pipeline: redis.Redis.pipeline,
         num_votes: int = 1,
-        pipeline: redis.Redis.pipeline = None,
     ) -> int:
         room = self.query_room_data(room_id=room_id, pipeline=pipeline)
         question = room.get_question_from_id(question_id=question_id)
@@ -159,7 +158,7 @@ class Database:
         question_id: str,
         option_id: str,
         num_votes: int,
-        pipeline: redis.Redis.pipeline = None,
+        pipeline: redis.Redis.pipeline,
     ) -> int:
         room = self.query_room_data(room_id=room_id, pipeline=pipeline)
         question = room.get_question_from_id(question_id=question_id)
@@ -170,7 +169,7 @@ class Database:
 
     @redis_pipeline
     def update_room_activity_time(
-        self, room_id: str, activity_time: str, pipeline: redis.Redis.pipeline = None
+        self, room_id: str, activity_time: str, pipeline: redis.Redis.pipeline
     ) -> str:
         room = self.query_room_data(room_id=room_id, pipeline=pipeline)
         room.last_activity = activity_time
@@ -184,3 +183,20 @@ class Database:
                 if user.user_id == user_id:
                     return room_id
         raise KeyError(f"User {user_id} does not exist in any room")
+
+    @redis_pipeline
+    def create_room(self, room_id: str, pipeline: redis.Redis.pipeline) -> Room:
+        if self.r.exists(room_id):
+            raise ValueError(f"Room {room_id} already exists.")
+        room = Room(room_id=room_id)
+        self.store_room_data(room_id=room_id, room_data=room, pipeline=pipeline)
+        return room_id
+
+    @redis_pipeline
+    def change_host(
+        self, room_id: str, new_host_id: str, pipeline: redis.Redis.pipeline
+    ) -> None:
+        room = self.query_room_data(room_id=room_id, return_dict=False)
+        room.set_host(new_host_id=new_host_id)
+        self.store_room_data(room_id=room_id, room_data=room, pipeline=pipeline)
+        return

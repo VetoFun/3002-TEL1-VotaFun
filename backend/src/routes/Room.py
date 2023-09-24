@@ -1,12 +1,7 @@
 from src.routes import room_blueprint
-from src.utils.Room import (
-    create_room_func,
-    delete_room_func,
-    join_room_func,
-    leave_room_func,
-)
 from src.logger import logger
 from flask import jsonify, request, current_app
+import traceback
 
 
 @room_blueprint.route("/createroom", methods=["POST"])
@@ -16,11 +11,15 @@ def create_room_route():
     :return: response code 200 if the operation succeed, otherwise response code 500 is returned.
     """
     data = request.get_json()
-    database = current_app.database
+    room_id = data.get("room_id")
     try:
-        result = create_room_func(data, database)
+        result = {
+            "success": True,
+            "message": current_app.database.create_room(room_id=room_id),
+        }
         return jsonify(result), 200
     except Exception as e:
+        print(traceback.format_exc())
         logger.error(e)
         return {"success": False, "error": "Internal Server Error"}, 500
 
@@ -32,23 +31,15 @@ def delete_room_route(room_id: str):
     :param room_id: Room id to be deleted.
     :return: response code 200 if the operation succeed, otherwise response code 500 is returned.
     """
-    database = current_app.database
     try:
-        result = delete_room_func(room_id, database)
+        result = {
+            "success": True,
+            "num_deleted": current_app.database.remove_room_data(room_id=room_id),
+        }
         return jsonify(result), 200
-    except Exception:
+    except Exception as e:
+        logger.error(e)
         return {"success": False, "error": "Internal Server Error"}, 500
-
-
-# @room_blueprint.route("/rooms", methods=["GET"])
-# def get_room_id(room_id: str):
-#     """
-#     Finds the roomid corresponding to the room code. If room does not exist, return False.
-#     :return: None
-#     """
-#     database = current_app.database
-#     result = get_room_id_func(room_id, database)
-#     return "Success", 200
 
 
 @room_blueprint.route("/joinroom/<room_id>/users", methods=["POST"])
@@ -59,9 +50,15 @@ def join_room_route(room_id: str):
     :return: response code 200 if the operation succeed, otherwise response code 500 is returned.
     """
     data = request.get_json()
-    database = current_app.database
+    user_id = data.get("user_id")
+    username = data.get("username")
     try:
-        result = join_room_func(room_id, data, database)
+        result = {
+            "success": True,
+            "num_users": current_app.database.add_user(
+                room_id=room_id, user_id=user_id, username=username
+            ),
+        }
         return jsonify(result), 200
     except Exception as e:
         logger.error(e)
@@ -76,9 +73,12 @@ def leave_room_route(room_id: str, user_id: str):
     :param user_id: User id of the user that left the room.
     :return: response code 200 if the operation succeed, otherwise response code 500 is returned.
     """
-    database = current_app.database
     try:
-        result = leave_room_func(room_id, user_id, database)
+        num_users, is_host = current_app.database.remove_user(
+            room_id=room_id, user_id=user_id
+        )
+        result = {"success": True, "num_users": num_users, "is_host": is_host}
         return jsonify(result), 200
-    except Exception:
+    except Exception as e:
+        logger.error(e)
         return {"success": False, "error": "Internal Server Error"}, 500

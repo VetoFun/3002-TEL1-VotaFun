@@ -11,14 +11,16 @@ from src.routes.Chatgpt import chatgpt_blueprint
 socketio = SocketIO(cors_allowed_origins="*")
 
 
-def create_app():
+def create_app(testing=False):
     app = Flask(__name__)
-    app_settings = os.environ.get("APP_SETTINGS", "src.config.DevelopmentConfig")
+    if testing:
+        app_settings = app.config.from_object("src.config.TestingConfig")
+    else:
+        app_settings = os.environ.get("APP_SETTINGS", "src.config.DevelopmentConfig")
     app.config.from_object(app_settings)
     app.config["SECRET_KEY"] = os.getenv("FLASK_SECRET_KEY", "")
 
     CORS(app, supports_credentials=True)
-
     database = Database(
         redis_url=app.config["REDIS_URL"],
         redis_host=app.config["REDIS_HOST"],
