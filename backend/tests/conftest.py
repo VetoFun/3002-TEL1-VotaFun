@@ -1,10 +1,23 @@
+import os
 import pytest
-import fakeredis
+
+from src.app import create_app
+from src.database import Database
 
 
-@pytest.fixture
-def fake_redis():
-    # Create a fakeredis instance
-    fake = fakeredis.FakeStrictRedis(version=7)
-    yield fake
-    fake.flushall()
+# Mock Redis connection for testing
+@pytest.fixture(scope="function")
+def mock_redis():
+    redis_url = os.environ.get("REDIS_URL", "redis://@localhost:6379")
+    redis_client = Database(redis_url=redis_url)
+    redis_client.r.flushdb()  # Flush the database
+    yield redis_client
+
+
+# Create the Flask app for testing
+@pytest.fixture(scope="function")
+def test_client(mock_redis):
+    app = create_app()
+    with app.test_client() as client:
+        client.database = mock_redis
+        yield client

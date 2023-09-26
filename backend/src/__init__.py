@@ -18,7 +18,6 @@ def create_app():
     app.config["SECRET_KEY"] = os.getenv("FLASK_SECRET_KEY", "")
 
     CORS(app, supports_credentials=True)
-
     database = Database(
         redis_url=app.config["REDIS_URL"],
         redis_host=app.config["REDIS_HOST"],

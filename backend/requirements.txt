@@ -47,3 +47,4 @@ Werkzeug==2.3.7
 yarl==1.9.2
 flask_socketio
 pytest-mock==3.11.1
+pytest-env==1.0.1
