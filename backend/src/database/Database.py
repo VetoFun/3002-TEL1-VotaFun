@@ -1,6 +1,8 @@
 import redis
 import json
 from typing import List, Dict, Union, Tuple
+from datetime import datetime
+from hashlib import sha1
 
 from ..logger import logger
 from ..decorators import redis_pipeline
@@ -98,7 +100,7 @@ class Database:
         question = Question(question_id=question_id, question_text=question_text)
         for option_id, option_text in options:
             question.add_option(Option(option_id=option_id, option_text=option_text))
-        room = self.query_room_data(room_id=room_id, pipeline=pipeline)
+        room = self.query_room_data(room_id=room_id)
         room.add_question(question=question)
         self.store_room_data(room_id=room_id, room_data=room, pipeline=pipeline)
         return len(room.questions)
@@ -118,7 +120,7 @@ class Database:
         pipeline: redis.Redis.pipeline,
     ) -> int:
         option = Option(option_id=option_id, option_text=option_text)
-        room = self.query_room_data(room_id=room_id, pipeline=pipeline)
+        room = self.query_room_data(room_id=room_id)
         question = room.get_question_from_id(question_id=question_id)
         question.add_option(option=option)
         self.store_room_data(room_id=room_id, room_data=room, pipeline=pipeline)
@@ -144,7 +146,7 @@ class Database:
         pipeline: redis.Redis.pipeline,
         num_votes: int = 1,
     ) -> int:
-        room = self.query_room_data(room_id=room_id, pipeline=pipeline)
+        room = self.query_room_data(room_id=room_id)
         question = room.get_question_from_id(question_id=question_id)
         option = question.get_option_by_id(option_id=option_id)
         option.add_vote(num_votes=num_votes)
@@ -160,7 +162,7 @@ class Database:
         num_votes: int,
         pipeline: redis.Redis.pipeline,
     ) -> int:
-        room = self.query_room_data(room_id=room_id, pipeline=pipeline)
+        room = self.query_room_data(room_id=room_id)
         question = room.get_question_from_id(question_id=question_id)
         option = question.get_option_by_id(option_id=option_id)
         option.set_vote(num_votes=num_votes)
@@ -171,7 +173,7 @@ class Database:
     def update_room_activity_time(
         self, room_id: str, activity_time: str, pipeline: redis.Redis.pipeline
     ) -> str:
-        room = self.query_room_data(room_id=room_id, pipeline=pipeline)
+        room = self.query_room_data(room_id=room_id)
         room.last_activity = activity_time
         self.store_room_data(room_id=room_id, room_data=room, pipeline=pipeline)
         return activity_time
@@ -185,7 +187,9 @@ class Database:
         raise KeyError(f"User {user_id} does not exist in any room")
 
     @redis_pipeline
-    def create_room(self, room_id: str, pipeline: redis.Redis.pipeline) -> Room:
+    def create_room(self, pipeline: redis.Redis.pipeline) -> Room:
+        timestamp = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+        room_id = sha1(timestamp.encode("utf-8")).hexdigest()
         if self.r.exists(room_id):
             raise ValueError(f"Room {room_id} already exists.")
         room = Room(room_id=room_id)
@@ -196,7 +200,7 @@ class Database:
     def change_host(
         self, room_id: str, new_host_id: str, pipeline: redis.Redis.pipeline
     ) -> None:
-        room = self.query_room_data(room_id=room_id, return_dict=False)
+        room = self.query_room_data(room_id=room_id)
         room.set_host(new_host_id=new_host_id)
         self.store_room_data(room_id=room_id, room_data=room, pipeline=pipeline)
         return

@@ -10,12 +10,10 @@ def create_room_route():
     Route to handle post request to "/createroom".
     :return: response code 200 if the operation succeed, otherwise response code 500 is returned.
     """
-    data = request.get_json()
-    room_id = data.get("room_id")
     try:
         result = {
             "success": True,
-            "message": current_app.database.create_room(room_id=room_id),
+            "room_id": current_app.database.create_room(),
         }
         return jsonify(result), 200
     except Exception as e:
