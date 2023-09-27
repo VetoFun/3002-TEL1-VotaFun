@@ -1,10 +1,6 @@
-'use client'
-import { ErrorPopup } from "@/components/common/ErrorPopup";
+'use client';
+import { ErrorPopup } from '@/components/common/ErrorPopup';
 
 export default function Error() {
-  return (
-    <>
-    <ErrorPopup />
-    </>
-  );
+  return <>{/* <ErrorPopup /> */}</>;
 }

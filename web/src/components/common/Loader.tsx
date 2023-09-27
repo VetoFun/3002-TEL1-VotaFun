@@ -1,6 +1,6 @@
 const Loader = () => {
   return (
-    <svg className="h-24 w-24 animate-spin text-white" fill="none" viewBox="0 0 24 24">
+    <svg className="h-24 w-24 animate-spin text-neutral" fill="none" viewBox="0 0 24 24">
       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
       <path
         className="opacity-75"
