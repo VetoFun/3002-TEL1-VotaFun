@@ -1,4 +1,3 @@
-
 import { JoinRoomInput } from '@/components/JoinRoomInput';
 import Link from 'next/link';
 

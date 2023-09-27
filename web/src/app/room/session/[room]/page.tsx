@@ -3,12 +3,12 @@
 import { useDebugStore } from '@/stores/useDebugStore';
 import { RoomLayout } from '@/components/layout/RoomLayout';
 import { Prompt } from './components/Prompt';
-import { useParams } from 'next/navigation';
+// import { useParams } from 'next/navigation';
 import { Vote } from './components/Vote';
 import { useState } from 'react';
 
 export default function RoomLobbyPage() {
-  const params = useParams();
+  // const params = useParams();
   const [admin, setAdmin] = useDebugStore((state) => [state.admin, state.setAdmin]);
 
   const [progress, setProgress] = useState(0);

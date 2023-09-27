@@ -1,20 +1,21 @@
-'use client'
+'use client';
 
 import { Loader } from '@/components/common/Loader';
-import { useRoomStore } from '@/stores/useRoomStore';
-import { createRoom } from './hooks/createRoom';
 import { useEffect } from 'react';
 import { redirect } from 'next/navigation';
+import useGameStore from '@/stores/useGameStore';
 
 export default function CreateRoomPage() {
+  const actions = useGameStore((state) => state.actions);
+  const roomId = useGameStore((state) => state.roomId);
 
-  const [room, setRoom] = useRoomStore((state) => [state.room, state.setRoom]);
-  setRoom(createRoom());
+  actions.createRoom();
 
   useEffect(() => {
-    redirect(`/room/join/${room?.id}`)
-  }, [room])
-  
+    actions.createRoom();
+    if (roomId) redirect(`/room/join/${roomId}`);
+  }, [actions, roomId]);
+
   return (
     <main className="h-screen w-screen bg-base-100">
       <div className="relative left-1/2 top-1/2 flex w-fit -translate-x-1/2 -translate-y-1/2 flex-col gap-2">
