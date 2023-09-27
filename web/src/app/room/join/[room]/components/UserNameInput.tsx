@@ -1,12 +1,8 @@
 'use client';
 
-import { useRoomStore } from '@/stores/useRoomStore';
 import { useEffect, useState } from 'react';
-import { createUser } from '../hooks/createUser';
 import { redirect, useParams } from 'next/navigation';
-import { joinRoom } from '../hooks/joinRoom';
-import useSocketStore, { useGameStore } from '@/stores/useSocketStore';
-import { shallow } from 'zustand/shallow';
+import useGameStore from '@/stores/useGameStore';
 
 const UserNameInput = () => {
   const params = useParams();
@@ -17,7 +13,6 @@ const UserNameInput = () => {
   const userId = useGameStore((state) => state.userId);
 
   useEffect(() => {
-    console.log(username, userId);
     if (username && userId) {
       redirect(`/room/lobby/${roomId}`);
     }
