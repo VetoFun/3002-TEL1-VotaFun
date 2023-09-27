@@ -5,34 +5,23 @@ import { useEffect, useState } from 'react';
 import { createUser } from '../hooks/createUser';
 import { redirect, useParams } from 'next/navigation';
 import { joinRoom } from '../hooks/joinRoom';
+import useSocketStore, { useGameStore } from '@/stores/useSocketStore';
+import { shallow } from 'zustand/shallow';
 
 const UserNameInput = () => {
   const params = useParams();
   const roomId = params.room as string;
-
   const [username, setUsername] = useState('');
-  const [ready, setReady] = useState(false);
 
-  const [setRoom, setUser] = useRoomStore((state) => [state.setRoom, state.setUser]);
-
-  function onClickJoin() {
-    if (!username) return;
-    createUser(roomId, username)
-      .then((user) => {
-        const room = joinRoom(user, roomId);
-        console.log(user);
-        setUser(user);
-        setRoom(room);
-        setReady(true);
-      })
-      .catch((error) => {
-        console.error('Error creating user:', error);
-      });
-  }
+  const actions = useGameStore((state) => state.actions);
+  const userId = useGameStore((state) => state.userId);
 
   useEffect(() => {
-    if (ready) redirect(`/room/lobby/${params.room}`);
-  }, [params.room, ready]);
+    console.log(username, userId);
+    if (username && userId) {
+      redirect(`/room/lobby/${roomId}`);
+    }
+  }, [username, roomId, userId]);
 
   return (
     <div className="flex w-full gap-x-2">
@@ -49,7 +38,7 @@ const UserNameInput = () => {
         className={`btn btn-neutral h-fit flex-none py-4 text-lg ${username.length == 0 ? 'btn-disabled' : ''}`}
         data-tip="Room code cannot be empty"
         data-for="room-code-empty"
-        onClick={() => onClickJoin()}
+        onClick={() => actions.joinRoom(roomId, username)}
       >
         Join
       </button>

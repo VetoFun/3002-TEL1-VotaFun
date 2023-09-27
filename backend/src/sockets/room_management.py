@@ -1,9 +1,9 @@
-from flask import request
-from flask_socketio import Namespace, send, join_room, leave_room, close_room
+from flask import jsonify, request
+from flask_socketio import Namespace, emit, send, join_room, leave_room, close_room
 from flask import current_app as app
 
 from src.logger import logger
-
+from src.utils.Room import create_room_func
 
 class RoomManagement(Namespace):
     def on_connect(self):
@@ -39,7 +39,20 @@ class RoomManagement(Namespace):
 
         send("Socket disconnected successfully")
 
+    def on_create_room(self, data):
+        """
+        Route to handle post request to "/createroom".
+        :return: response code 200 if the operation succeed, otherwise response code 500 is returned.
+        """
+        database = app.database
+        try:
+            result = create_room_func(data, database)
+            emit('create_room', result)
+        except Exception:
+            return {"success": False, "error": "Internal Server Error"}, 500
+
     def on_join_room(self, data):
+        print(data)
         room_id = data["room_id"]
         user_name = data["user_name"]
 
@@ -59,6 +72,7 @@ class RoomManagement(Namespace):
 
         # Send message to all users in room
         send(f"{user_name} has joined the room {room_id}", to=room_id)
+        emit('join_room', {"success": True, "room_id": room_id, "user_id": request.sid})
 
     def on_leave_room(self, data):
         room_id = data["room_id"]

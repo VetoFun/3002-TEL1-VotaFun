@@ -19,18 +19,17 @@ def create_room_func(data: dict, database: Database):
     room_id = sha1(timestamp.encode("utf-8")).hexdigest()
     try:
         # creates host user and room
-        user = User(data["username"], data["host_id"])
         room = Room(
             room_id,
             1,
             30,
             timestamp,
             [],
-            data["host_id"],
             "",
-            data["location"],
-            data["activity"],
-            [user],
+            "",
+            "",
+            "",
+            [],
         )
         # add to database
         database.store_room_data(room_id, room)
