@@ -32,6 +32,7 @@ class Database:
             return room.to_dict()
         return room
 
+    @redis_pipeline
     def store_room_data(
         self, room_id: str, room_data: Room, pipeline: redis.Redis.pipeline
     ) -> None:
@@ -46,10 +47,6 @@ class Database:
         # returns number of rooms deleted
         pipeline.delete(room_id)
         return pipeline.execute()[0]
-
-    def get_users(self, room_id: str) -> List[Dict[str, str]]:
-        room = self.query_room_data(room_id=room_id)
-        return [user.to_dict() for user in room.users]
 
     @redis_pipeline
     def add_user(
@@ -66,6 +63,10 @@ class Database:
         room.add_user(new_user)
         self.store_room_data(room_id=room_id, room_data=room, pipeline=pipeline)
         return len(room.users)
+
+    def get_users(self, room_id: str) -> List[Dict[str, str]]:
+        room = self.query_room_data(room_id=room_id)
+        return [user.to_dict() for user in room.users]
 
     @redis_pipeline
     def remove_user(
