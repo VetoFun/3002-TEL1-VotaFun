@@ -191,20 +191,21 @@ def test_add_question_and_options(mock_redis, sample_room_data):
     question2 = Question(
         question_id="q3",
         question_text="What's your favorite animal?",
-        options=[("o1", "dinosaur")],
+        options=[Option(option_id="o1", option_text="dinosaur")],
     )
 
+    options = [(option.option_id, option.option_text) for option in question2.options]
+
     # Test inserting a question
-    mock_redis.add_question_and_options(
+    question = mock_redis.add_question_and_options(
         room_id=room_id,
         question_id=question2.question_id,
         question_text=question2.question_text,
-        options=question2.options,
+        options=options,
     )
 
     # Check that the operation was successful
-    questions = mock_redis.get_questions(sample_room_data.room_id)
-    assert len(questions) == len(TEST_QUESTIONS) + 1
+    assert question == question2
 
 
 def test_get_options(mock_redis, sample_room_data):

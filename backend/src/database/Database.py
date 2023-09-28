@@ -100,14 +100,14 @@ class Database:
         question_text: str,
         options: List[Tuple[str, str]],
         pipeline: redis.Redis.pipeline,
-    ) -> list[Question]:
+    ) -> Question:
         question = Question(question_id=question_id, question_text=question_text)
         for option_id, option_text in options:
             question.add_option(Option(option_id=option_id, option_text=option_text))
         room = self.query_room_data(room_id=room_id)
         room.add_question(question=question)
         self.store_room_data(room_id=room_id, room_data=room, pipeline=pipeline)
-        return room.questions
+        return question
 
     def get_options(self, room_id: str, question_id: str) -> list[Option]:
         room = self.query_room_data(room_id=room_id)
