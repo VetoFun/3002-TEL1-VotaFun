@@ -144,7 +144,7 @@ def test_get_users(mock_redis, sample_room_data):
 
     # Check that the user is in the list of users
     assert len(TEST_USERS) == len(mock_redis.get_users(room_id=room_id))
-    assert users[0]["user_id"] == TEST_USERS[0].user_id
+    assert users[0].user_id == TEST_USERS[0].user_id
 
 
 def test_remove_users(mock_redis, sample_room_data):
@@ -156,11 +156,13 @@ def test_remove_users(mock_redis, sample_room_data):
     mock_redis.store_room_data(
         room_id=room_id, room_data=sample_room_data, pipeline=pipeline
     )
+    # Check that there is a user
+    result = mock_redis.get_users(room_id)
+    assert result == TEST_USERS
 
-    result, _ = mock_redis.remove_user(sample_room_data.room_id, TEST_USERS[0].user_id)
-
+    result, _ = mock_redis.remove_user(room_id, TEST_USERS[0].user_id)
     # Check that the operation was successful
-    assert result == 0
+    assert result == []
 
 
 def test_get_questions(mock_redis, sample_room_data):
@@ -174,7 +176,7 @@ def test_get_questions(mock_redis, sample_room_data):
     )
     questions = mock_redis.get_questions(sample_room_data.room_id)
     assert len(questions) == len(TEST_QUESTIONS)
-    assert questions[0]["question_id"] == TEST_QUESTIONS[0].question_id
+    assert questions[0].question_id == TEST_QUESTIONS[0].question_id
 
 
 def test_add_question_and_options(mock_redis, sample_room_data):
@@ -219,7 +221,7 @@ def test_get_options(mock_redis, sample_room_data):
 
     # Check that the option is in the list of options
     assert len(options) == len(TEST_QUESTIONS[0].options)
-    assert options[0]["option_id"] == TEST_QUESTIONS[0].options[0].option_id
+    assert options[0].option_id == TEST_QUESTIONS[0].options[0].option_id
 
 
 def test_add_option(mock_redis, sample_room_data):
@@ -231,17 +233,22 @@ def test_add_option(mock_redis, sample_room_data):
     mock_redis.store_room_data(
         room_id=room_id, room_data=sample_room_data, pipeline=pipeline
     )
+    # Check for number of option before
+    result = mock_redis.get_options(room_id, sample_room_data.questions[0].question_id)
+    assert len(result) == len(TEST_QUESTIONS[0].options)
 
     # Call the add_option function
+    option4 = Option(option_id="new_option", option_text="New Option")
     result = mock_redis.add_option(
         room_id=room_id,
         question_id=sample_room_data.questions[0].question_id,
-        option_id="new_option",
-        option_text="New Option",
+        option_id=option4.option_id,
+        option_text=option4.option_text,
     )
 
-    # Check if the result is as expected
-    assert result == len(sample_room_data.questions[0].options) + 1
+    # Check that the option has been added
+    assert len(result) == len(TEST_QUESTIONS[0].options) + 1
+    assert result[3] == option4  # There's 3 option in the sample
 
 
 def test_get_vote(mock_redis, sample_room_data):
