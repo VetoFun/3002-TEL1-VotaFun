@@ -16,6 +16,44 @@ def sample_question():
     )
 
 
+def test_question_creation():
+    # Create an Option object
+    question = Question(
+        question_id="q1",
+        question_text="What is your favorite color?",
+        options=[
+            Option(option_id="o1", option_text="Red"),
+            Option(option_id="o2", option_text="Blue"),
+            Option(option_id="o3", option_text="Green"),
+        ],
+    )
+
+    # Check if Option attributes are set correctly
+    assert question.question_id == "q1"
+    assert question.question_text == "What is your favorite color?"
+    assert question.options == [
+        Option(option_id="o1", option_text="Red"),
+        Option(option_id="o2", option_text="Blue"),
+        Option(option_id="o3", option_text="Green"),
+    ]
+
+
+def test_question_equality(sample_question):
+    # Create two Option objects with the same data
+    question1 = Question(
+        question_id="q1",
+        question_text="What is your favorite color?",
+        options=[
+            Option(option_id="o1", option_text="Red"),
+            Option(option_id="o2", option_text="Blue"),
+            Option(option_id="o3", option_text="Green"),
+        ],
+    )
+
+    # Check if the two options are equal
+    assert question1 == sample_question
+
+
 def test_add_option(sample_question):
     # Test adding an option to the question
     new_option = Option(option_id="o4", option_text="Yellow")

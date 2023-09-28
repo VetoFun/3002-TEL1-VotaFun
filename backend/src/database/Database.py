@@ -8,7 +8,7 @@ from ..logger import logger
 from ..decorators import redis_pipeline
 from .Option import Option
 from .Question import Question
-from .Room import Room
+from .Room import Room, RoomStatus
 from .User import User
 
 
@@ -35,6 +35,7 @@ class Database:
     def store_room_data(
         self, room_id: str, room_data: Room, pipeline: redis.Redis.pipeline
     ) -> None:
+        room_data.last_activity = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         # Store room data in Redis Hash
         for key, value in room_data.to_dict().items():
             pipeline.hset(room_id, key, json.dumps(value))
@@ -47,10 +48,6 @@ class Database:
         pipeline.delete(room_id)
         return pipeline.execute()[0]
 
-    def get_users(self, room_id: str) -> List[Dict[str, str]]:
-        room = self.query_room_data(room_id=room_id)
-        return [user.to_dict() for user in room.users]
-
     @redis_pipeline
     def add_user(
         self,
@@ -58,19 +55,28 @@ class Database:
         user_id: str,
         username: str,
         pipeline: redis.Redis.pipeline,
-    ) -> int:
+    ) -> list[User]:
         room = self.query_room_data(room_id=room_id)
+        if room.status == RoomStatus.STARTED:
+            raise Exception(f"Room {room_id} has already started")
         if room.get_number_of_user() == room.get_max_capacity():
             raise Exception(f"Room {room_id} is at max capacity")
         new_user = User(user_id=user_id, user_name=username)
         room.add_user(new_user)
+        # set host_id as current user if there's 1 user only.
+        if room.get_number_of_user() == 1:
+            room.set_host(new_user.user_id)
         self.store_room_data(room_id=room_id, room_data=room, pipeline=pipeline)
-        return len(room.users)
+        return room.users
+
+    def get_users(self, room_id: str) -> List[User]:
+        room = self.query_room_data(room_id=room_id)
+        return room.users
 
     @redis_pipeline
     def remove_user(
         self, room_id: str, user_id: str, pipeline: redis.Redis.pipeline
-    ) -> Tuple[int, bool]:
+    ) -> Tuple[list[User], bool]:
         room = self.query_room_data(room_id=room_id)
         is_host = False
         try:
@@ -78,15 +84,13 @@ class Database:
             is_host = user_id == room.host_id
         except KeyError as e:
             logger.error(e)
-            return len(room.users), False
+            return room.users, False
         self.store_room_data(room_id=room_id, room_data=room, pipeline=pipeline)
-        return len(room.users), is_host
+        return room.users, is_host
 
-    def get_questions(
-        self, room_id: str
-    ) -> List[Dict[str, Union[str, List[Dict[str, Union[str, int]]]]]]:
+    def get_questions(self, room_id: str) -> list[Question]:
         room = self.query_room_data(room_id=room_id)
-        return [question.to_dict() for question in room.questions]
+        return room.questions
 
     @redis_pipeline
     def add_question_and_options(
@@ -96,19 +100,19 @@ class Database:
         question_text: str,
         options: List[Tuple[str, str]],
         pipeline: redis.Redis.pipeline,
-    ) -> int:
+    ) -> Question:
         question = Question(question_id=question_id, question_text=question_text)
         for option_id, option_text in options:
             question.add_option(Option(option_id=option_id, option_text=option_text))
         room = self.query_room_data(room_id=room_id)
         room.add_question(question=question)
         self.store_room_data(room_id=room_id, room_data=room, pipeline=pipeline)
-        return len(room.questions)
+        return question
 
-    def get_options(self, room_id: str, question_id: str) -> List[Dict]:
+    def get_options(self, room_id: str, question_id: str) -> list[Option]:
         room = self.query_room_data(room_id=room_id)
         question = room.get_question_from_id(question_id=question_id)
-        return [option.to_dict() for option in question.options]
+        return question.options
 
     @redis_pipeline
     def add_option(
@@ -118,13 +122,13 @@ class Database:
         option_id: str,
         option_text: str,
         pipeline: redis.Redis.pipeline,
-    ) -> int:
+    ) -> list[Option]:
         option = Option(option_id=option_id, option_text=option_text)
         room = self.query_room_data(room_id=room_id)
         question = room.get_question_from_id(question_id=question_id)
         question.add_option(option=option)
         self.store_room_data(room_id=room_id, room_data=room, pipeline=pipeline)
-        return len(question.options)
+        return question.options
 
     def get_vote(
         self,
@@ -183,7 +187,7 @@ class Database:
             room = self.query_room_data(room_id=room_id)
             for user in room.users:
                 if user.user_id == user_id:
-                    return room_id
+                    return room.room_id
         raise KeyError(f"User {user_id} does not exist in any room")
 
     @redis_pipeline
