@@ -8,7 +8,7 @@ from ..logger import logger
 from ..decorators import redis_pipeline
 from .Option import Option
 from .Question import Question
-from .Room import Room
+from .Room import Room, RoomStatus
 from .User import User
 
 
@@ -32,10 +32,10 @@ class Database:
             return room.to_dict()
         return room
 
-    @redis_pipeline
     def store_room_data(
         self, room_id: str, room_data: Room, pipeline: redis.Redis.pipeline
     ) -> None:
+        room_data.last_activity = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         # Store room data in Redis Hash
         for key, value in room_data.to_dict().items():
             pipeline.hset(room_id, key, json.dumps(value))
@@ -57,12 +57,17 @@ class Database:
         pipeline: redis.Redis.pipeline,
     ) -> int:
         room = self.query_room_data(room_id=room_id)
+        if room.status == RoomStatus.STARTED:
+            raise Exception(f"Room {room_id} has already started")
         if room.get_number_of_user() == room.get_max_capacity():
             raise Exception(f"Room {room_id} is at max capacity")
         new_user = User(user_id=user_id, user_name=username)
         room.add_user(new_user)
+        # set host_id as current user if there's 1 user only.
+        if room.get_number_of_user() == 1:
+            room.set_host(new_user.user_id)
         self.store_room_data(room_id=room_id, room_data=room, pipeline=pipeline)
-        return len(room.users)
+        return room.users
 
     def get_users(self, room_id: str) -> List[Dict[str, str]]:
         room = self.query_room_data(room_id=room_id)
@@ -76,7 +81,11 @@ class Database:
         is_host = False
         try:
             room.remove_user_from_id(user_id=user_id)
-            is_host = user_id == room.host_id
+            # Remove room if no user left
+            if room.get_number_of_user() == 0:
+                self.remove_room_data(room_id=room_id)
+            else:
+                is_host = user_id == room.host_id
         except KeyError as e:
             logger.error(e)
             return len(room.users), False
@@ -184,7 +193,7 @@ class Database:
             room = self.query_room_data(room_id=room_id)
             for user in room.users:
                 if user.user_id == user_id:
-                    return room_id
+                    return room.room_id
         raise KeyError(f"User {user_id} does not exist in any room")
 
     @redis_pipeline
