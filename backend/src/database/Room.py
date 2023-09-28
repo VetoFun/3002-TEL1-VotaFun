@@ -19,7 +19,6 @@ class Room:
 
     Args:
         room_id (str): The unique identifier for the room.
-        room_code (str): The room code or name.
         number_of_user (int): The number of users in the room.
         max_capacity (int): The maximum capacity of the room.
         last_activity (str): The timestamp of the room's last activity.
