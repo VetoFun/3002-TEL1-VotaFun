@@ -17,6 +17,7 @@ class Database:
             redis_url = f"redis://@{redis_host}:{redis_port}"
         self.r = redis.from_url(redis_url)
 
+    # todo: use redis api instead
     def query_room_data(self, room_id: str, return_dict=False) -> Union[Room, Dict]:
         if not self.r.exists(room_id):
             raise KeyError(f"Error: {room_id} does not exist.")

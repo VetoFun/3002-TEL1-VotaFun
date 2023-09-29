@@ -23,6 +23,8 @@ def chatgpt_func(data, database):
     except KeyError:
         raise
 
+    # todo: tell chatgpt to regenerate if there is no options
+
     # initial prompt
     messages = [
         {

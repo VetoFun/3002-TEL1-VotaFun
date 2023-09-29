@@ -13,7 +13,7 @@ def chatgpt_route():
     data = request.get_json()
     database = current_app.database
     try:
-        result = chatgpt_func(data, database)
+        result = chatgpt_func(data=data, database=database)
         if "error" in result:
             return result, 500
         else:

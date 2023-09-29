@@ -10,6 +10,7 @@ from flask import jsonify, request, current_app
 
 @room_blueprint.route("/createroom", methods=["POST"])
 def create_room_route():
+    # Todo: seperate it out to create_room() -> create_user()
     """
     Route to handle post request to "/createroom".
     :return: response code 200 if the operation succeed, otherwise response code 500 is returned.
@@ -17,7 +18,7 @@ def create_room_route():
     data = request.get_json()
     database = current_app.database
     try:
-        result = create_room_func(data, database)
+        result = create_room_func(data=data, database=database)
         return jsonify(result), 200
     except Exception:
         return {"success": False, "error": "Internal Server Error"}, 500
@@ -32,7 +33,7 @@ def delete_room_route(room_id: str):
     """
     database = current_app.database
     try:
-        result = delete_room_func(room_id, database)
+        result = delete_room_func(room_id=room_id, database=database)
         return jsonify(result), 200
     except Exception:
         return {"success": False, "error": "Internal Server Error"}, 500
@@ -59,7 +60,7 @@ def join_room_route(room_id: str):
     data = request.get_json()
     database = current_app.database
     try:
-        result = join_room_func(room_id, data, database)
+        result = join_room_func(room_id=room_id, data=data, database=database)
         return jsonify(result), 200
     except Exception:
         return {"success": False, "error": "Internal Server Error"}, 500
@@ -75,7 +76,7 @@ def leave_room_route(room_id: str, user_id: str):
     """
     database = current_app.database
     try:
-        result = leave_room_func(room_id, user_id, database)
+        result = leave_room_func(room_id=room_id, user_id=user_id, database=database)
         return jsonify(result), 200
     except Exception:
         return {"success": False, "error": "Internal Server Error"}, 500

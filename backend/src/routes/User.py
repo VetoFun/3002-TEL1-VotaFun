@@ -12,9 +12,10 @@ def get_all_users_route(room_id: str):
     """
     database = current_app.database
     try:
-        results = get_all_users_func(room_id, database)
+        results = get_all_users_func(room_id=room_id, database=database)
         return jsonify(results), 200
     except Exception:
+        # todo: log exception
         return {"success": False, "error": "Internal Server Error"}, 500
 
 
@@ -29,7 +30,9 @@ def change_host_route(room_id: str):
     database = current_app.database
 
     try:
-        results = change_host_func(room_id, data["new_hostid"], database)
+        results = change_host_func(
+            room_id=room_id, new_hostid=data["new_hostid"], database=database
+        )
         return jsonify(results), 200
     except Exception:
         return {"success": False, "error": "Internal Server Error"}, 500

@@ -101,14 +101,12 @@ def leave_room_func(room_id: str, user_id: str, database: Database):
     :return: success == True if the user is removed, and the number of users and if the user that left is
     the host is returned. Otherwise, raise an exception.
     """
-    try:
-        room = database.query_room_data(room_id)
-        num_user = database.remove_user(room_id, user_id)
-        logger.info(f"Number of user in {room_id} is {num_user}.")
-        return {
-            "success": True,
-            "num_users": num_user,
-            "is_host": room["host_id"] == user_id,
-        }
-    except Exception:
-        raise
+    # todo: refactor these raise except.
+    room = database.query_room_data(room_id)
+    num_user = database.remove_user(room_id, user_id)
+    logger.info(f"Number of user in {room_id} is {num_user}.")
+    return {
+        "success": True,
+        "num_users": num_user,
+        "is_host": room["host_id"] == user_id,
+    }
