@@ -23,39 +23,41 @@ def chatgpt_func(data, database):
     except KeyError:
         raise
 
+    # todo: tell chatgpt to regenerate if there is no options
+
     # initial prompt
     messages = [
         {
             "role": "system",
-            "content": f"We are a group of friends and you play the role of a mind reader. We are thinking of doing"
-            f"an {room_activity} in {room_location} Singapore. Since you are a mind reader, guess what"
-            f"activity we are thinking of doing. \n"
-            f"Here is how you can generate questions and votes. Questions are generated based on the "
-            f"previous questions and votes. Options for the current question is based on the question. "
-            f"Following this format ensures that you will be able to guess what we are thinking of doing. "
-            f"The rule is that you can only ask 5 questions with 4 options to choose from. "
-            f"Give one question each time, generating questions and options based on the previous "
-            f"questions and votes.\n"
-            f"Always format questions and options like this: "
+            "content": f"We are planning a {room_activity} in {room_location} Singapore and will need your help. "
+            f"Can you give us 5 questions one at a time, along with 4 options to vote for. Questions and "
+            f"votes must be generated based on the previous response except for the first question."
+            f"After getting votes for the 5 "
+            f"questions, suggest 4 {room_activity} for us to do. Only give the activity after all voting is "
+            f"done.\n"
+            f"Format the questions in this manner: \n"
             f"Question <x>: <question>\n"
-            f"<1>) <option 1>\n"
-            f"<2>) <option 2>\n"
-            f"<3>) <option 3>\n"
-            f"<4>) <option 4>\n"
-            f"After 5 questions, suggest 4 {room_activity} activities that we are thinking of doing in "
-            f"{room_location} Singapore in this format:"
-            f"Activity <x>: <activity>\n"
-            f"Suggest activities only after question 5 based on the all questions asked and the votes for "
-            f"each option. Do not repeat questions and votes. Ask questions normally, like a conversation."
-            f"Do not give open-ended questions, only multiple choice."
-            f"Options given must be based on the question.",
+            f"1) <option 1>\n"
+            f"2) <option 2>\n"
+            f"3) <option 3>\n"
+            f"4) <option 4>\n"
+            f"We will tell you the result of our votes in this format: \n"
+            f"<option 1>) <number of votes for 1>\n"
+            f"<option 2>) <number of votes for 2>\n"
+            f"<option 3>) <number of votes for 3>\n"
+            f"<option 4>) <number of votes for 4>\n"
+            f"After 5 questions, based on the votes suggest 4 {room_activity} activity in {room_location} Singapore "
+            f"using this format.\n"
+            f"Activity x: <activity name>\n"
+            f"You do not need to show the votes at the end. Only suggest 4 activities after question 5. The 4 activity "
+            f"suggested must be in Singapore and only show me the suggested activities.",
         }
     ]
 
     # regexes to extract information Chatgpt returns
     activity_regex = r"Activity \d+: (.+)"
     question_regex = r"Question \d+: (.+)"
-    option_regex = r".*[0-9].*\).*"
+    option_regex = r"[0-9]\).*"
 
     # adding the past questions asked by chatGPT and their votes
     past_questions = room["questions"]
@@ -72,7 +74,7 @@ def chatgpt_func(data, database):
 
                 content = ""
                 for option in votes:
-                    content += f"{option['option_id']}: {option['votes']}\n"
+                    content += f"{option['option_text']}: {option['votes']}\n"
 
                 votes_question = {
                     "role": "user",
@@ -82,9 +84,11 @@ def chatgpt_func(data, database):
 
     if "num_of_votes" in data:
         content = ""
+        # get the last question asked
+        last_question = past_questions[-1]
         for i in range(0, data["num_of_votes"]):
             # content += f"{chr(65 + i)}) {data['votes'][chr(65 + i)]}\n"
-            content += f"{i + 1}) {data['votes'][str(i + 1)]}\n"
+            content += f"{last_question['options'][i]['option_text']}: {data['votes'][str(i + 1)]}\n"
 
             # update votes in question
             database.set_vote(
@@ -97,19 +101,15 @@ def chatgpt_func(data, database):
         votes = {
             "role": "user",
             "content": content
-            + "Remember you can only ask 5 questions for us, and only give the activity we are"
-            "thinking of after question number 5. Give properly formatted questions with "
-            "4 valid options to choose. We will not tell you anything if you do not give us "
-            "valid options A to D to choose from. \n"
-            "The format is:"
+            + "We are indecisive so give us a properly formatted question "
+            "with 4 options to vote. Remember do not repeat or ask similar questions and options. "
+            "Suggest 4 activities after question 5 and stop asking questions and options."
+            "Format the questions in this manner: \n"
             "Question <x>: <question>\n"
-            "<1>) <option 1>\n"
-            "<2>) <option 2>\n"
-            "<3>) <option 3>\n"
-            "<4>) <option 4>\n"
-            "Do not repeat or ask similar questions with their options."
-            "Do not give open-ended questions, only multiple choice with options to choose."
-            "Options given must be based on the question.",
+            "1) <option 1>\n"
+            "2) <option 2>\n"
+            "3) <option 3>\n"
+            "4) <option 4>\n",
         }
         messages.append(votes)
 
@@ -127,13 +127,13 @@ def chatgpt_func(data, database):
     question_matches = re.findall(question_regex, chatgpt_reply)
     option_matches = re.findall(option_regex, chatgpt_reply)
 
-    reply = {"role": "assistant", "content": chat.choices[0].message["content"]}
-    messages.append(reply)
+    # reply = {"role": "assistant", "content": chat.choices[0].message["content"]}
+    # messages.append(reply)
     logger.info(f"{messages}")
 
     rsp = {"success": True}
     # if chatGPT ask a question
-    if len(activity_matches) == 0:
+    if len(question_matches) != 0:
         rsp["question"] = question_matches[0]
         rsp["question_id"] = sha1(rsp["question"].encode("utf-8")).hexdigest()
         rsp["num_of_options"] = len(option_matches)
@@ -143,13 +143,12 @@ def chatgpt_func(data, database):
         database.add_question(room_id, rsp["question_id"], rsp["question"])
 
         for i in option_matches:
-            option_extraction_regex = r"\s[A-Za-z].*"
+            option_extraction_regex = r"(?<= )[0-9A-Za-z].*"
             option_id_extraction_regex = r"[0-9]"
             option = re.search(option_extraction_regex, i).group(0)
             option_id = re.search(option_id_extraction_regex, i).group(0)
 
             rsp["options"][option_id] = option
-            print(rsp)
             # store options in database
             database.add_option(room_id, rsp["question_id"], option_id, option)
     # end of the 5th question

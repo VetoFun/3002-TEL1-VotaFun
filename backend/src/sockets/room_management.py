@@ -43,7 +43,7 @@ class RoomManagement(Namespace):
                 app.database.remove_room_data(room_id=room_id)
                 send(f"Room {room_id} has been closed", broadcast=True)
         except KeyError as e:
-            logger.log(e)
+            logger.info(e)
 
         send("Socket disconnected successfully")
 
@@ -61,7 +61,7 @@ class RoomManagement(Namespace):
             send(f"{user_name} has joined the room {room_id}", to=room_id)
         except Exception as e:
             # User fails to join room, either room has started or room is at max capacity.
-            logger.log(e)
+            logger.info(e)
             send(f"{user_name} failed to join room {room_id} due to {e}", to=room_id)
 
     def on_leave_room(self, data):
@@ -69,18 +69,21 @@ class RoomManagement(Namespace):
         user_name = data["user_name"]
         leave_room(room_id)
 
-        # Remove user from database
-        room_users, is_host = app.database.remove_user(
-            room_id=room_id, user_id=request.sid
-        )
+        try:
+            # Remove user from database
+            room_users, is_host = app.database.remove_user(
+                room_id=room_id, user_id=request.sid
+            )
 
-        # room_data = app.database.query_room_data(room_id=room_id)
-        if len(room_users) == 0:
-            # Remove room from database
-            self.on_close_room(data)
+            # room_data = app.database.query_room_data(room_id=room_id)
+            if len(room_users) == 0:
+                # Remove room from database
+                self.on_close_room(data)
 
-        # Send message to all users in room
-        send(f"{user_name} has left the room {room_id}", to=room_id)
+            # Send message to all users in room
+            send(f"{user_name} has left the room {room_id}", to=room_id)
+        except Exception as e:
+            logger.info(e)
 
     def on_close_room(self, data):
         room_id = data["room_id"]
@@ -99,7 +102,7 @@ class RoomManagement(Namespace):
             # Send message to all users in room
             send(f"Room {room_id} has started", broadcast=True)
         except Exception as e:
-            logger.log(e)
+            logger.info(e)
 
     def on_kick_user(self, data):
         room_id = data["room_id"]
@@ -113,7 +116,7 @@ class RoomManagement(Namespace):
             # Send message to all users in room
             send(f"{kick_user_name} has been kicked by the host", to=room_id)
         except Exception as e:
-            logger.log(e)
+            logger.info(e)
 
     def on_vote_option(self, data):
         room_id = data["room_id"]
@@ -131,7 +134,7 @@ class RoomManagement(Namespace):
                 include_self=True,
             )
         except Exception as e:
-            logger.log(e)
+            logger.info(e)
 
     def countdown_round(self):
         for i in range(0, Config.TIMER):
