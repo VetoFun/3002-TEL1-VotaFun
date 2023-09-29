@@ -9,6 +9,7 @@ from flask_socketio import (
 )
 from flask import current_app as app
 from time import sleep
+import threading
 
 from src.logger import logger
 from ..config import Config
@@ -131,19 +132,70 @@ class RoomManagement(Namespace):
 
             send(
                 f"{user_name} has voted {option_id} for {question_id}",
-                include_self=True,
+                to=room_id,
             )
         except Exception as e:
             logger.info(e)
 
-    def countdown_round(self):
-        for i in range(0, Config.TIMER):
-            sleep(1)
-        return
+    def end_round(self, room_id):
+        send(f"{room_id} time is up", to=room_id)
+
+    def countdown_round(self, callback, room_id):
+        sleep(Config.TIMER)
+        callback(room_id)
 
     def on_start_round(self, data):
+        # todo: add logic for getting questions and emit to the frontend
+        # pesudocode
+        # reply = llm.get_reply()
+        # emit the reply to the frontend
+        # emit("question", reply, namespace=Namespace)
+        # reply will be a json in the form of
+        # get_reply() will handle storing questions and options into the database, as well as updating the time.
+        # reply = {
+        #     "question": "Question text",
+        #     "question_id": "Question id",
+        #     "options": {
+        #         "1": "option 1" # etc
+        #     },
+        #     "num_of_options": 1
+        # }
+        # reply = {
+        #     "activities": {
+        #         "1": "activity 1" # etc
+        #     },
+        #     "num_of_activity": 1
+        # }
+        # start the countdown
         room_id = data["room_id"]
-        for i in range(Config.TIMER, 0, -1):
-            sleep(1)
-            send(f"Room {room_id}, countdown: {i}", to=room_id)
-        return
+        countdown_thread = threading.Thread(
+            target=self.countdown_round,
+            args=(
+                self.end_round,
+                room_id,
+            ),
+        )
+        countdown_thread.start()
+        try:
+            app.database.update_room_activity_time(room_id=room_id, activity_time="123")
+        except Exception as e:
+            logger.info(e)
+
+    def on_set_room_properties(self, data):
+        room_activity = data["room_activity"]
+        room_location = data["room_location"]
+        room_id = data["room_id"]
+
+        try:
+            app.database.set_room_properties(
+                room_id=room_id,
+                room_location=room_location,
+                room_activity=room_activity,
+                requesting_user_id=request.sid,
+            )
+            send(
+                f"Room {room_id} has set the activity to {room_activity} and location to {room_location}",
+                to=room_id,
+            )
+        except Exception as e:
+            logger.info(e)

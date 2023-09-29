@@ -222,3 +222,25 @@ class Database:
         else:
             raise ValueError("Room has already started.")
         return
+
+    @redis_pipeline
+    def set_room_properties(
+        self,
+        room_id: str,
+        room_location: str,
+        room_activity: str,
+        requesting_user_id: str,
+        pipeline: redis.Redis.pipeline,
+    ) -> None:
+        room = self.query_room_data(room_id=room_id)
+        if room.status == RoomStatus.STARTED:
+            raise KeyError(f"Room {room_id} has already started")
+        if room.host_id != requesting_user_id:
+            raise ValueError(
+                f"User {requesting_user_id} is not the host of room {room_id} has already started"
+            )
+        if room.room_location != "" and room.room_activity != "":
+            raise KeyError(f"Room {room_id} has already set its activity and location")
+        room.set_activity(room_activity=room_activity)
+        room.set_location(room_location=room_location)
+        self.store_room_data(room_id=room_id, room_data=room, pipeline=pipeline)

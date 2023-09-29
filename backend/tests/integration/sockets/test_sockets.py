@@ -156,8 +156,26 @@ def test_close_room(clients, server_namespace):
 #     response2 = client2.get_received(namespace=server_namespace)
 #     assert response2[2]["args"] == "Host changed to Roy"
 
+# def test_kick_user(clients, server_namespace, kick_user_data):
+#     # Todo: fix test case
+#     client1, client2, mock_database = clients
+#
+#     client1.emit(
+#         "kick_user",
+#         kick_user_data,
+#         namespace=server_namespace,
+#     )
+#
+#     # Assert correct response is sent to client2 (still in the room)
+#     response2 = client2.get_received(namespace=server_namespace)
+#     assert (
+#         response2[2]["args"]
+#         == f"{kick_user_data['kick_user_name']} has been kicked by the host"
+#     )
+
 
 def test_vote_option(clients, server_namespace, charles_voting_data, roy_voting_data):
+    # Todo: fix test case
     client1, client2, mock_database = clients
 
     client1.emit(

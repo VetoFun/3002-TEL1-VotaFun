@@ -112,6 +112,12 @@ class Room:
     def set_host(self, new_host_id):
         self.host_id = new_host_id
 
+    def set_activity(self, room_activity):
+        self.room_activity = room_activity
+
+    def set_location(self, room_location):
+        self.room_location = room_location
+
     def start_room(self):
         self.status = RoomStatus.STARTED
 
