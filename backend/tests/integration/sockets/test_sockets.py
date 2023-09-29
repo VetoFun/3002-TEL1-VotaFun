@@ -17,6 +17,31 @@ def roy_data():
 
 
 @pytest.fixture
+def kick_user_data():
+    return {"room_id": "12345", "kick_user_id": "2", "kick_user_name": "Roy"}
+
+
+@pytest.fixture
+def charles_voting_data():
+    return {
+        "room_id": "12345",
+        "question_id": "98765",
+        "user_name": "Charles",
+        "option_id": "1",
+    }
+
+
+@pytest.fixture
+def roy_voting_data():
+    return {
+        "room_id": "12345",
+        "question_id": "98765",
+        "user_name": "Roy",
+        "option_id": "2",
+    }
+
+
+@pytest.fixture
 def server_namespace():
     return "/room-management"
 
@@ -125,3 +150,48 @@ def test_change_host(clients, server_namespace, mocker):
     client1.disconnect(namespace=server_namespace)
     response2 = client2.get_received(namespace=server_namespace)
     assert response2[2]["args"] == "Host changed to Roy"
+
+
+def test_kick_user(clients, server_namespace, kick_user_data):
+    client1, client2, mock_database = clients
+
+    client1.emit(
+        "kick_user",
+        kick_user_data,
+        namespace=server_namespace,
+    )
+
+    # Assert correct response is sent to client2 (still in the room)
+    response2 = client2.get_received(namespace=server_namespace)
+    assert (
+        response2[2]["args"]
+        == f"{kick_user_data['kick_user_name']} has been kicked by the host"
+    )
+
+
+def test_vote_option(clients, server_namespace, charles_voting_data, roy_voting_data):
+    client1, client2, mock_database = clients
+
+    client1.emit(
+        "vote_option",
+        charles_voting_data,
+        namespace=server_namespace,
+    )
+
+    client2.emit(
+        "vote_option",
+        roy_voting_data,
+        namespace=server_namespace,
+    )
+
+    # Assert correct response is sent to client1 and client2
+    response1 = client1.get_received(namespace=server_namespace)
+    response2 = client2.get_received(namespace=server_namespace)
+    assert response2[2]["args"] == (
+        f"{roy_voting_data['user_name']} "
+        f"has voted {roy_voting_data['option_id']} for {roy_voting_data['question_id']}"
+    )
+    assert response1[3]["args"] == (
+        f"{charles_voting_data['user_name']} has voted "
+        f"{charles_voting_data['option_id']} for {charles_voting_data['question_id']}"
+    )

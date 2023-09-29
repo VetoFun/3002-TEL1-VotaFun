@@ -208,3 +208,17 @@ class Database:
         room.set_host(new_host_id=new_host_id)
         self.store_room_data(room_id=room_id, room_data=room, pipeline=pipeline)
         return
+
+    @redis_pipeline
+    def start_room(self, room_id: str, pipeline: redis.Redis.pipeline) -> None:
+        # get the room
+        room = self.query_room_data(room_id=room_id)
+        # check if room has already started
+        if room.status == RoomStatus.WAITING:
+            # starts the room
+            room.start_room()
+            # stores the room data
+            self.store_room_data(room_id=room_id, room_data=room, pipeline=pipeline)
+        else:
+            raise ValueError("Room has already started.")
+        return
