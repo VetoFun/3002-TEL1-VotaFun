@@ -13,14 +13,14 @@ function Participant({ initial, name, host }: ParticipantProps) {
   const isRoomHost = useDebugStore((state) => state.admin);
 
   return (
-    <div className="group flex w-full gap-2 px-4 py-2 align-middle transition-colors hover:bg-base-content group-hover:text-neutral">
+    <div className="group flex w-full gap-2 px-4 py-2 align-middle transition-colors hover:bg-accent group-hover:text-neutral">
       {host && (
-        <span className="my-auto text-2xl group-hover:text-orange-500">
+        <span className="my-auto text-2xl group-hover:text-warning">
           <FaCrown />
         </span>
       )}
       <div className="avatar placeholder">
-        <div className="w-10 rounded-full bg-neutral text-neutral-content">
+        <div className="w-10 rounded-full bg-base-100 text-neutral">
           <span className="inline text-base">{initial}</span>
         </div>
       </div>

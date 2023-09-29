@@ -37,6 +37,24 @@ const config: Config = {
       },
     },
   },
+  daisyui: {
+    themes: [
+      {
+        // https://github.com/Serendipity-Theme/daisy-ui
+        votafun: {
+          primary: '#EE8679',
+          secondary: '#F8D2C9',
+          accent: '#5BA2D0',
+          neutral: '#DEE0EF',
+          'base-100': '#151726',
+          info: '#94B8FF',
+          success: '#33ddbe',
+          warning: '#f6c33f',
+          error: '#F87272',
+        },
+      },
+    ],
+  },
   plugins: [require('daisyui')],
 };
 export default config;

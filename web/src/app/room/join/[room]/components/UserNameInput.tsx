@@ -7,7 +7,6 @@ import { redirect, useParams } from 'next/navigation';
 import { joinRoom } from '../hooks/joinRoom';
 
 const UserNameInput = () => {
-
   const params = useParams();
   const roomId = params.room as string;
 
@@ -17,7 +16,7 @@ const UserNameInput = () => {
   const [setRoom, setUser] = useRoomStore((state) => [state.setRoom, state.setUser]);
 
   function onClickJoin() {
-    if(!username) return;
+    if (!username) return;
     const user = createUser(username);
     const room = joinRoom(user, roomId);
 
@@ -27,18 +26,17 @@ const UserNameInput = () => {
   }
 
   useEffect(() => {
-    if(ready)
-      redirect(`/room/lobby/${params.room}`);
- }, [params.room, ready]);
+    if (ready) redirect(`/room/lobby/${params.room}`);
+  }, [params.room, ready]);
 
   return (
     <div className="flex w-full gap-x-2">
       <input
         type="text"
         className={`input input-bordered h-auto flex-1`}
-        placeholder="Enter Username"
+        placeholder="ENTER USERNAME"
         onChange={(e) => {
-          setUsername(e.target.value)
+          setUsername(e.target.value);
         }}
         required={true}
       />

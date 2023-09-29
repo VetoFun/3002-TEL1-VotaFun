@@ -20,7 +20,7 @@ export default function RoomLobbyPage() {
       <input
         type="checkbox"
         onChange={() => setAdmin(!admin)}
-        className="toggle toggle-success absolute bottom-1 left-1"
+        className="toggle toggle-success absolute bottom-16 left-1"
       />
     </RoomLayout>
   );

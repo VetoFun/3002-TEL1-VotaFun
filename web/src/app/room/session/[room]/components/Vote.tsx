@@ -6,7 +6,7 @@ interface VoteButtonProps {
 
 function Vote({ id, text, color }: VoteButtonProps) {
   return (
-    <button className={`btn ${color} h-24 max-w-md py-4 text-lg`} value={id}>
+    <button className={`btn ${color} h-24 max-w-md py-8 text-lg`} value={id}>
       {text}
     </button>
   );

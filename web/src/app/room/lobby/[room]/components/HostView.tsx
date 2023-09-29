@@ -23,7 +23,7 @@ const HostView = () => {
     <div className="flex flex-col gap-2">
       <Select label="Select Location" options={locations} onChange={(e) => setLocation(e.target.value)} />
       <Select label="Select Activity" options={activities} onChange={(e) => setActivity(e.target.value)} />
-      <Link className="btn btn-neutral text-lg" href={`/room/session/${useRoomStore.getState().room!.id}`}>
+      <Link className="btn btn-secondary text-lg" href={`/room/session/${useRoomStore.getState().room!.id}`}>
         Start Room
       </Link>
     </div>
