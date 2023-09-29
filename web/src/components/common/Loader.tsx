@@ -25,21 +25,21 @@ const Loader = () => {
           }}
           transition={{ duration: 1.2, repeat: Infinity, ease: [0.17, 0.67, 0.83, 0.67] }}
         >
-          <motion.line
+          <motion.span
             className="block h-1 w-16 rounded-full bg-neutral"
             animate={{
               x: ['0%', '50%', '0%'],
             }}
             transition={{ duration: 1.2, repeat: Infinity, ease: [0.17, 0.67, 0.83, 0.67] }}
           />
-          <motion.line
+          <motion.span
             className="block h-1 w-16 rounded-full bg-neutral"
             animate={{
               x: ['0%', '50%', '0%'],
             }}
             transition={{ duration: 0.8, repeat: Infinity, ease: [0.17, 0.67, 0.83, 0.67] }}
           />
-          <motion.line
+          <motion.span
             className="block h-1 w-16 rounded-full bg-neutral"
             animate={{
               x: ['0%', '50%', '0%'],

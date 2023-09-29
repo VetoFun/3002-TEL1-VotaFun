@@ -21,7 +21,7 @@ interface DashLineProps {
 
 const DashLine = ({ x, y, width, color = 'bg-neutral', speed = 1.5, delay = 0 }: DashLineProps) => {
   return (
-    <motion.line
+    <motion.span
       className={`absolute inline-block h-1 ${width} ${x} ${y} ${color}`}
       animate={{
         x: ['110vw', '-110vw'],
@@ -41,7 +41,7 @@ export default function JoinRoomPage({ params }: JoinRoomPageProps) {
         <UserNameInput />
       </div>
       <motion.div className="pointer-events-none fixed left-0 top-1/2 h-1/4 w-screen -translate-y-1/2">
-        {/* <motion.line
+        {/* <motion.span
           className="absolute top-1/2 block h-2 w-16 bg-neutral"
           animate={{
             x: ['110vw', '-110vw'],
