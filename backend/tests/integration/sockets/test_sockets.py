@@ -193,7 +193,7 @@ def test_vote_option(clients, server_namespace, charles_voting_data, roy_voting_
     # Assert correct response is sent to client1 and client2
     response1 = client1.get_received(namespace=server_namespace)
     response2 = client2.get_received(namespace=server_namespace)
-    assert response2[2]["args"] == (
+    assert response2[3]["args"] == (
         f"{roy_voting_data['user_name']} "
         f"has voted {roy_voting_data['option_id']} for {roy_voting_data['question_id']}"
     )

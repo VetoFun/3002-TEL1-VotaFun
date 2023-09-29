@@ -1,4 +1,4 @@
-from flask import request
+from flask import request, copy_current_request_context
 from flask_socketio import (
     Namespace,
     send,
@@ -6,9 +6,11 @@ from flask_socketio import (
     leave_room,
     close_room,
     disconnect,
+    emit,
 )
 from flask import current_app as app
 from time import sleep
+from datetime import datetime
 import threading
 
 from src.logger import logger
@@ -111,7 +113,9 @@ class RoomManagement(Namespace):
         kick_user_id = data["kick_user_id"]
         kick_user_name = data["kick_user_name"]
         try:
-            app.database.remove_user(room_id=room_id, user_id=kick_user_id)
+            app.database.kick_user(
+                room_id=room_id, request_user_id=request.sid, kick_user_id=kick_user_id
+            )
             # remove the user
             disconnect(sid=kick_user_id)
             # Send message to all users in room
@@ -137,21 +141,16 @@ class RoomManagement(Namespace):
         except Exception as e:
             logger.info(e)
 
-    def end_round(self, room_id):
-        send(f"{room_id} time is up", to=room_id)
-
-    def countdown_round(self, callback, room_id):
-        sleep(Config.TIMER)
-        callback(room_id)
-
     def on_start_round(self, data):
         # todo: add logic for getting questions and emit to the frontend
         # pesudocode
         # reply = llm.get_reply()
         # emit the reply to the frontend
         # emit("question", reply, namespace=Namespace)
-        # reply will be a json in the form of
         # get_reply() will handle storing questions and options into the database, as well as updating the time.
+        # maybe an if statment to check if questions or activities are returned.
+        # if questions start the countdown thread
+        # reply will be a json in the form of
         # reply = {
         #     "question": "Question text",
         #     "question_id": "Question id",
@@ -168,16 +167,24 @@ class RoomManagement(Namespace):
         # }
         # start the countdown
         room_id = data["room_id"]
-        countdown_thread = threading.Thread(
-            target=self.countdown_round,
-            args=(
-                self.end_round,
-                room_id,
-            ),
-        )
+
+        @copy_current_request_context
+        def countdown_round():
+            sleep(Config.TIMER)
+            with app.app_context():
+                emit(
+                    "end_round",
+                    {"event": f"Round ended for {room_id}"},
+                    namespace="/room-management",
+                )
+
+        countdown_thread = threading.Thread(target=countdown_round)
         countdown_thread.start()
         try:
-            app.database.update_room_activity_time(room_id=room_id, activity_time="123")
+            current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            app.database.update_room_activity_time(
+                room_id=room_id, activity_time=current_time
+            )
         except Exception as e:
             logger.info(e)
 

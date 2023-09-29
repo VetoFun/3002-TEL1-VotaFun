@@ -244,3 +244,17 @@ class Database:
         room.set_activity(room_activity=room_activity)
         room.set_location(room_location=room_location)
         self.store_room_data(room_id=room_id, room_data=room, pipeline=pipeline)
+
+    @redis_pipeline
+    def kick_user(
+        self,
+        room_id: str,
+        request_user_id: str,
+        kick_user_id: str,
+        pipeline: redis.Redis.pipeline,
+    ) -> None:
+        room = self.query_room_data(room_id=room_id)
+        if room.host_id != request_user_id:
+            raise ValueError("Only the host can kick users")
+        room.remove_user_from_id(user_id=kick_user_id)
+        self.store_room_data(room_id=room_id, room_data=room, pipeline=pipeline)
