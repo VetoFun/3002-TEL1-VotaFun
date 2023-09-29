@@ -1,12 +1,14 @@
 import json
 from typing import List, Dict, Union
 from enum import Enum, auto
+from datetime import datetime, timedelta
 
 from .Question import Question
 from .User import User
+from ..config import Config
 
 
-class RoomStatus(Enum):
+class RoomStatus(str, Enum):
     WAITING = auto()
     STARTED = auto()
 
@@ -17,7 +19,6 @@ class Room:
 
     Args:
         room_id (str): The unique identifier for the room.
-        room_code (str): The room code or name.
         number_of_user (int): The number of users in the room.
         max_capacity (int): The maximum capacity of the room.
         last_activity (str): The timestamp of the room's last activity.
@@ -38,9 +39,9 @@ class Room:
     def __init__(
         self,
         room_id: str,
-        number_of_user: int,
-        max_capacity: int,
-        last_activity: str,
+        number_of_user: int = 0,
+        max_capacity: int = Config.MAX_CAPACITY,
+        last_activity: str = datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         questions: List[Question] = [],
         host_id: str = "",
         status: str = RoomStatus.WAITING,
@@ -89,10 +90,11 @@ class Room:
 
     def add_user(self, user: User):
         self.users.append(user)
+        self.number_of_user += 1
 
     def remove_user_from_id(self, user_id: str) -> int:
         for user in self.users:
-            if user.id == user_id:
+            if user.user_id == user_id:
                 self.users.remove(user)
                 self.number_of_user -= 1
                 return len(self.users)
@@ -110,10 +112,16 @@ class Room:
     def set_host(self, new_host_id):
         self.host_id = new_host_id
 
+    def start_room(self):
+        self.status = RoomStatus.STARTED
+
+    def is_room_still_active(self, time: datetime) -> bool:
+        last_activity = datetime.strptime(self.last_activity, "%Y-%m-%d %H:%M:%S")
+        return time - last_activity <= timedelta(hours=1)
+
     def to_dict(self) -> Dict[str, Union[str, int, List[Dict[str, Union[str, int]]]]]:
         return {
             "room_id": self.room_id,
-            # "room_code": self.room_code,
             "number_of_user": self.number_of_user,
             "max_capacity": self.max_capacity,
             "last_activity": self.last_activity,
@@ -137,22 +145,28 @@ class Room:
             Room: A Room object.
         """
         # Extract values from the dictionary
-        room_id = eval(data.get("room_id"))
-        # room_code = eval(data.get("room_code"))
-        number_of_user = eval(data.get("number_of_user"))
-        max_capacity = eval(data.get("max_capacity"))
-        last_activity = eval(data.get("last_activity"))
-        host_id = eval(data.get("host_id"))
-        status = eval(data.get("status"))
-        room_location = eval(data.get("room_location"))
-        room_activity = eval(data.get("room_activity"))
-        questions = [Question.from_dict(q) for q in json.loads(data.get("questions"))]
-        users = [User.from_dict(u) for u in json.loads(data.get("users", []))]
+        room_id = data.get("room_id").strip('"')
+        number_of_user = int(data.get("number_of_user", 0))
+        max_capacity = int(data.get("max_capacity", Config.MAX_CAPACITY))
+        last_activity = data.get("last_activity", "").strip('"')
+        host_id = data.get("host_id", "").strip('"')
+        status = eval(data.get("status", RoomStatus.WAITING))
+        room_location = data.get("room_location", "").strip('"')
+        room_activity = data.get("room_activity", "").strip('"')
+        questions = (
+            [Question.from_dict(q) for q in json.loads(data.get("questions"))]
+            if "questions" in data
+            else []
+        )
+        users = (
+            [User.from_dict(u) for u in json.loads(data.get("users", ""))]
+            if "users" in data
+            else []
+        )
 
         # Create and return a Room object
         return cls(
             room_id=room_id,
-            # room_code=room_code,
             number_of_user=number_of_user,
             max_capacity=max_capacity,
             last_activity=last_activity,

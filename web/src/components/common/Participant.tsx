@@ -1,6 +1,5 @@
-import { useDebugStore } from '@/stores/useDebugStore';
+import useGameStore from '@/stores/useGameStore';
 import { useRoomStore } from '@/stores/useRoomStore';
-import { useSearchParams } from 'next/navigation';
 import { FaBan, FaCrown } from 'react-icons/fa';
 
 interface ParticipantProps {
@@ -10,7 +9,10 @@ interface ParticipantProps {
 }
 
 function Participant({ initial, name, host }: ParticipantProps) {
-  const isRoomHost = useDebugStore((state) => state.admin);
+  const users = useRoomStore((state) => state.users);
+  const userId = useGameStore((state) => state.userId);
+
+  const isRoomHost = users.find((user) => user.user_id === userId)?.is_host;
 
   return (
     <div className="group flex w-full gap-2 px-4 py-2 align-middle transition-colors hover:bg-accent group-hover:text-neutral">

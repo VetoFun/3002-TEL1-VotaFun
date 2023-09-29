@@ -3,7 +3,7 @@ services:
   frontend:
     build:
       context: ./web
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     volumes:
       - ./web/src:/app/src
     ports:
@@ -16,7 +16,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     volumes:
-      - ./backend/src:/app/
+      - ./backend/src:/app/src
     ports:
       - "5001:5000"
     env_file:
