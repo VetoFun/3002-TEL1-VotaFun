@@ -11,3 +11,4 @@ pytest-mock==3.11.1
 Flask-SocketIO==5.3.6
 openai==0.28.0
 pytest-env==1.0.1
+gunicorn==21.2.0
