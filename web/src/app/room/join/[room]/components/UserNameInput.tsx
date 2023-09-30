@@ -23,7 +23,7 @@ const UserNameInput = () => {
       <input
         type="text"
         className={`input input-bordered h-auto flex-1`}
-        placeholder="Enter Username"
+        placeholder="ENTER USERNAME"
         onChange={(e) => {
           setUsername(e.target.value);
         }}
