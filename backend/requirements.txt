@@ -12,3 +12,4 @@ Flask-SocketIO==5.3.6
 openai==0.28.0
 pytest-env==1.0.1
 gunicorn==21.2.0
+eventlet==0.33.3
