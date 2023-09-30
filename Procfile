@@ -1,1 +1,1 @@
-web: gunicorn --pythonpath backend --worker-class eventlet -w 1 src:app
+web: sh -c 'cd backend && gunicorn --worker-class eventlet -w 1 src:app'
