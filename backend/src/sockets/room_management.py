@@ -1,7 +1,6 @@
 from flask import request, copy_current_request_context
 from flask_socketio import (
     Namespace,
-    send,
     join_room,
     leave_room,
     close_room,
@@ -223,7 +222,6 @@ class RoomManagement(Namespace):
             # remove the user
             disconnect(sid=kick_user_id)
             # Send message to all users in room
-            send(f"{kick_user_name} has been kicked by the host", to=room_id)
             emit(
                 "kick_user_event",
                 {
