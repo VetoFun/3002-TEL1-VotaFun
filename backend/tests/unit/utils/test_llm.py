@@ -104,7 +104,7 @@ def test_extract_question_options():
     assert extracted_information["options"][1]["option_id"] == "2"
 
 
-def test_generate_llm_reply(sample_question, sample_messages):
+def test_generate_llm_reply(sample_question, sample_messages, sample_reprompt):
     llm = LLM()
 
     llm_reply = llm.generate_llm_reply(past_questions=[], message=sample_messages)
@@ -119,7 +119,7 @@ def test_generate_llm_reply(sample_question, sample_messages):
     }
     assert llm_reply_past_question[2] == {
         "role": "user",
-        "content": "Red: 0\nBlue: 0\nGreen: 0",
+        "content": "Red: 0\nBlue: 0\nGreen: 0" + sample_reprompt,
     }
 
 
