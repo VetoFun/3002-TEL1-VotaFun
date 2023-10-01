@@ -99,9 +99,17 @@ class RoomManagement(Namespace):
         send(f"Room {room_id} has been closed", broadcast=True)
 
     def on_start_room(self, data):
+        room_activity = data["room_activity"]
+        room_location = data["room_location"]
         room_id = data["room_id"]
+
         try:
-            app.database.start_room(room_id=room_id)
+            app.database.start_room(
+                room_id=room_id,
+                room_location=room_location,
+                room_activity=room_activity,
+                requesting_user_id=request.sid,
+            )
             # Send message to all users in room
             send(f"Room {room_id} has started", broadcast=True)
         except Exception as e:
@@ -194,12 +202,6 @@ class RoomManagement(Namespace):
         room_id = data["room_id"]
 
         try:
-            app.database.set_room_properties(
-                room_id=room_id,
-                room_location=room_location,
-                room_activity=room_activity,
-                requesting_user_id=request.sid,
-            )
             send(
                 f"Room {room_id} has set the activity to {room_activity} and location to {room_location}",
                 to=room_id,

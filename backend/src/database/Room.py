@@ -112,14 +112,10 @@ class Room:
     def set_host(self, new_host_id):
         self.host_id = new_host_id
 
-    def set_activity(self, room_activity):
-        self.room_activity = room_activity
-
-    def set_location(self, room_location):
-        self.room_location = room_location
-
-    def start_room(self):
+    def start_room(self, room_location, room_activity):
         self.status = RoomStatus.STARTED
+        self.room_activity = room_activity
+        self.room_location = room_location
 
     def is_room_still_active(self, time: datetime) -> bool:
         last_activity = datetime.strptime(self.last_activity, "%Y-%m-%d %H:%M:%S")
