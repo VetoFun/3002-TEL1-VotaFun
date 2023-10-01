@@ -10,7 +10,6 @@ from flask_socketio import (
 )
 from flask import current_app as app
 from time import sleep
-from datetime import datetime
 import threading
 
 from src.logger import logger
@@ -150,54 +149,47 @@ class RoomManagement(Namespace):
             logger.info(e)
 
     def on_start_round(self, data):
-        # todo: add logic for getting questions and emit to the frontend
-        # get_reply() will handle storing questions and options into the database, as well as updating the time.
-        # reply will be a json in the form of
-        # reply = {
-        #     "question": "Question text",
-        #     "question_id": "Question id",
-        #     "options": {
-        #         "1": "option 1" # etc
-        #     },
-        #     "num_of_options": 1
-        # }
-        # reply = {
-        #     "activities": {
-        #         "1": "activity 1" # etc
-        #     },
-        #     "num_of_activity": 1
-        # }
-        # start the countdown
         room_id = data["room_id"]
-        reply, type_of_reply = app.llm.get_reply(room_id=room_id, database=app.database)
-
-        # asking a question, we emit the question and options, then start the countdown
-        if type_of_reply == "question":
-            emit("asked_question", reply, namespace="/room-management", to=room_id)
-
-            # starts the round
-            @copy_current_request_context
-            def countdown_round():
-                sleep(Config.TIMER)
-                with app.app_context():
-                    emit(
-                        "end_round",
-                        {"event": f"Round ended for {room_id}"},
-                        namespace="/room-management",
-                    )
-
-            countdown_thread = threading.Thread(target=countdown_round)
-            countdown_thread.start()
-
-        # giving the choice of activities, we just emit it instead.
-        else:
-            emit("activity", reply, namespace="/room-management", to=room_id)
 
         try:
-            current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            app.database.update_room_activity_time(
-                room_id=room_id, activity_time=current_time
+            # get_reply() will handle storing questions and options into the database, as well as updating the time.
+            reply, type_of_reply = app.llm.get_reply(
+                room_id=room_id, database=app.database
             )
+
+            # asking a question, we emit the question and options, then start the countdown
+            if type_of_reply == "question":
+                # reply = {"question_id": "123",
+                #          "question_text": "What activity do you want to do?",
+                #          "options": [{
+                #                       "option_id": "1",
+                #                       "option_text": "Hiking",
+                #                       "votes": 0
+                #                       }],
+                #          }
+                emit("asked_question", reply, namespace="/room-management", to=room_id)
+
+                # starts the countdown
+                @copy_current_request_context
+                def countdown_round():
+                    sleep(Config.TIMER)
+                    with app.app_context():
+                        emit(
+                            "end_round",
+                            {"event": f"Round ended for {room_id}"},
+                            namespace="/room-management",
+                        )
+
+                countdown_thread = threading.Thread(target=countdown_round)
+                countdown_thread.start()
+
+            # giving the choice of activities, we just emit it instead.
+            else:
+                # reply = {'activities': [{'activity_id': '1', 'activity_text': 'Escape Room Challenge at Lost SG'},
+                #                         {'activity_id': '2', 'activity_text': 'Virtual Reality Experience at V-Room'}
+                #                         ],
+                #          'num_of_activity': 2}
+                emit("activity", reply, namespace="/room-management", to=room_id)
         except Exception as e:
             logger.info(e)
 

@@ -12,8 +12,31 @@ class LLM:
         # regexes to extract information Chatgpt returns
         self.activity_regex = r"Activity \d+: (.+)"
         self.question_regex = r"Question \d+: (.+)"
-        # self.option_regex = r"[0-9]\).*"
         self.option_regex = r"[0-9]\) (.+)"
+
+        # re prompts
+        self.re_prompt = (
+            "\nWe are indecisive so give us a properly formatted question "
+            "with 4 options to vote. Remember do not repeat or ask similar questions and options. "
+            "Suggest 4 activities after question 5 and stop asking questions and options."
+            "Format the questions in this manner: \n"
+            "Question <x>: <question>\n"
+            "1) <option 1>\n"
+            "2) <option 2>\n"
+            "3) <option 3>\n"
+            "4) <option 4>\n"
+        )
+        self.retry_prompt = (
+            "\nThere was not enough options provided last time. We are indecisive so give us a "
+            "properly formatted question with at least 2 options to vote. Remember do not repeat or "
+            "ask similar questions and options. Suggest 4 activities after question 5 and stop asking "
+            "questions and options. Follow this format to give us the questions: \n"
+            "Question <x>: <question>\n"
+            "1) <option 1>\n"
+            "2) <option 2>\n"
+            "3) <option 3>\n"
+            "4) <option 4>\n"
+        )
 
     def get_reply(self, room_id, database):
         # get room properties
@@ -69,7 +92,9 @@ class LLM:
         if activities["num_of_activity"] != 0:
             return activities, "activity"
         else:
-            # todo: tell chatgpt to regenerate if there is no options
+            # tell chatgpt to regenerate if there is < 2 options
+            if len(question_and_options.to_dict()["options"]) < 2:
+                question_and_options = self.retry_logic(message=message_to_send)
             # store the questions and room data
             database.add_question_and_options(room, question_and_options)
             return question_and_options.to_dict(), "question"
@@ -100,6 +125,10 @@ class LLM:
                 }
                 message.append(questions)
                 message.append(votes_question)
+
+            # adding the re prompt to ensure that llm almost always gives us what is expected.
+            message[-1]["content"] += self.re_prompt
+        print(message)
         logger.info(message)
         return message
 
@@ -133,7 +162,7 @@ class LLM:
                 options=options_list,
             )
 
-            logger.info(question)
+            logger.info(question.to_dict())
             return question
         except Exception:
             raise ValueError("Could not extract questions or options")
@@ -142,14 +171,22 @@ class LLM:
         # format into a json that can be emitted
         activities_matches = re.findall(self.activity_regex, llm_reply)
 
-        activities = {}
+        activities = []
 
         for i in range(len(activities_matches)):
-            activities[f"activity: {i + 1}"] = activities_matches[i]
-        activities["num_of_activity"] = len(activities_matches)
+            activities.append(
+                {"activity_id": str(i + 1), "activity_text": activities_matches[i]}
+            )
 
         logger.info(activities)
-        return activities
+        return {"activities": activities, "num_of_activity": len(activities)}
 
-    def retry_logic(self):
-        pass
+    def retry_logic(self, message):
+        # we retry at most 5 times.
+        for i in range(5):
+            retry_reply = self.call_gpt(message)
+            question_and_options = self.extract_question_options(retry_reply).to_dict()
+            if len(question_and_options["options"]) >= 2:
+                return question_and_options
+
+        raise ValueError("Retry logic failed.")

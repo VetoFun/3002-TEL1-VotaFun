@@ -51,6 +51,22 @@ def sample_messages():
     ]
 
 
+@pytest.fixture
+def sample_reprompt():
+    # Create the initial prompt
+    return (
+        "\nWe are indecisive so give us a properly formatted question "
+        "with 4 options to vote. Remember do not repeat or ask similar questions and options. "
+        "Suggest 4 activities after question 5 and stop asking questions and options."
+        "Format the questions in this manner: \n"
+        "Question <x>: <question>\n"
+        "1) <option 1>\n"
+        "2) <option 2>\n"
+        "3) <option 3>\n"
+        "4) <option 4>\n"
+    )
+
+
 def test_extract_question_options():
     # create LLM object
     llm = LLM()
@@ -65,6 +81,7 @@ def test_extract_question_options():
     )
 
     extracted_information = llm.extract_question_options(sample_reply).to_dict()
+
     assert (
         extracted_information["question_id"]
         == sha1(
@@ -114,20 +131,15 @@ def test_extract_activities(sample_question):
         "Description: activity 1 description\n"
         "Activity 2: Virtual Reality Experience at V-Room\n"
         "Description: activity 2 description\n"
-        "Activity 3: Art Jamming Workshop at The Fun Empire\n"
-        "Description: activity 3 description\n"
-        "Activity 4: Mystery Room Dinner at The Escape Hunt Experience\n"
-        "Description: activity 3 description\n"
     )
     activities = llm.extract_activities(sample_reply)
+    all_activities = activities["activities"]
 
-    assert activities["num_of_activity"] == 4
-    assert activities["activity: 1"] == "Escape Room Challenge at Lost SG"
-    assert activities["activity: 2"] == "Virtual Reality Experience at V-Room"
-    assert activities["activity: 3"] == "Art Jamming Workshop at The Fun Empire"
-    assert (
-        activities["activity: 4"] == "Mystery Room Dinner at The Escape Hunt Experience"
-    )
+    assert activities["num_of_activity"] == 2 == len(all_activities)
+    assert all_activities[0]["activity_text"] == "Escape Room Challenge at Lost SG"
+    assert all_activities[0]["activity_id"] == "1"
+    assert all_activities[1]["activity_text"] == "Virtual Reality Experience at V-Room"
+    assert all_activities[1]["activity_id"] == "2"
 
 
 def test_extract_zero_activities(sample_question):
