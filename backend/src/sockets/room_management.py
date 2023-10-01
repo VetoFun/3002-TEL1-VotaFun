@@ -151,13 +151,7 @@ class RoomManagement(Namespace):
 
     def on_start_round(self, data):
         # todo: add logic for getting questions and emit to the frontend
-        # pesudocode
-        # reply = llm.get_reply()
-        # emit the reply to the frontend
-        # emit("question", reply, namespace=Namespace)
         # get_reply() will handle storing questions and options into the database, as well as updating the time.
-        # maybe an if statment to check if questions or activities are returned.
-        # if questions start the countdown thread
         # reply will be a json in the form of
         # reply = {
         #     "question": "Question text",
@@ -175,19 +169,30 @@ class RoomManagement(Namespace):
         # }
         # start the countdown
         room_id = data["room_id"]
+        reply, type_of_reply = app.llm.get_reply(room_id=room_id, database=app.database)
 
-        @copy_current_request_context
-        def countdown_round():
-            sleep(Config.TIMER)
-            with app.app_context():
-                emit(
-                    "end_round",
-                    {"event": f"Round ended for {room_id}"},
-                    namespace="/room-management",
-                )
+        # asking a question, we emit the question and options, then start the countdown
+        if type_of_reply == "question":
+            emit("asked_question", reply, namespace="/room-management", to=room_id)
 
-        countdown_thread = threading.Thread(target=countdown_round)
-        countdown_thread.start()
+            # starts the round
+            @copy_current_request_context
+            def countdown_round():
+                sleep(Config.TIMER)
+                with app.app_context():
+                    emit(
+                        "end_round",
+                        {"event": f"Round ended for {room_id}"},
+                        namespace="/room-management",
+                    )
+
+            countdown_thread = threading.Thread(target=countdown_round)
+            countdown_thread.start()
+
+        # giving the choice of activities, we just emit it instead.
+        else:
+            emit("activity", reply, namespace="/room-management", to=room_id)
+
         try:
             current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             app.database.update_room_activity_time(
