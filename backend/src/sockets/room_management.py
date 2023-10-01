@@ -32,6 +32,19 @@ class RoomManagement(Namespace):
             room_users, is_host = app.database.remove_user(
                 room_id=room_id, user_id=request.sid
             )
+            # if a normal user disconnect
+            if not is_host:
+                emit(
+                    "disconnect_event",
+                    {
+                        "success": True,
+                        "message": f"{request.sid} has disconnected.",
+                        "users": room_users,
+                        "new_host": "",
+                    },
+                    to=room_id,
+                )
+
             # if the person that disconnect is a host, and there are more people in the room
             if is_host and len(room_users) > 0:
                 new_host = room_users[0]
@@ -113,7 +126,19 @@ class RoomManagement(Namespace):
             room_users, is_host = app.database.remove_user(
                 room_id=room_id, user_id=request.sid
             )
-            # if a host leaves
+            # if a normal user leaves
+            if not is_host:
+                emit(
+                    "leave_event",
+                    {
+                        "success": True,
+                        "message": f"{user_name} has left the room {room_id}.",
+                        "users": room_users,
+                        "new_host": "",
+                    },
+                    to=room_id,
+                )
+            # if a host leaves and there are more people in the room
             if is_host and len(room_users) > 0:
                 new_host = room_users[0]
                 app.database.change_host(
