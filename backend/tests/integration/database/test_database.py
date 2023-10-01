@@ -194,14 +194,9 @@ def test_add_question_and_options(mock_redis, sample_room_data):
         options=[Option(option_id="o1", option_text="dinosaur")],
     )
 
-    options = [(option.option_id, option.option_text) for option in question2.options]
-
     # Test inserting a question
     question = mock_redis.add_question_and_options(
-        room_id=room_id,
-        question_id=question2.question_id,
-        question_text=question2.question_text,
-        options=options,
+        room=sample_room_data, question=question2
     )
 
     # Check that the operation was successful
