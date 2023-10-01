@@ -109,8 +109,20 @@ class Room:
     def get_max_capacity(self):
         return self.max_capacity
 
+    def get_room_location(self):
+        return self.room_location
+
+    def get_room_activity(self):
+        return self.room_activity
+
+    def get_questions(self):
+        return [question.to_dict() for question in self.questions]
+
     def set_host(self, new_host_id):
         self.host_id = new_host_id
+
+    def set_last_activity(self):
+        self.last_activity = datetime.strftime(datetime.now(), "%Y-%m-%d %H:%M:%S")
 
     def start_room(self, room_location, room_activity):
         self.status = RoomStatus.STARTED

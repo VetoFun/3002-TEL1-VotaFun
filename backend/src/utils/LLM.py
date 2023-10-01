@@ -17,9 +17,11 @@ class LLM:
 
     def get_reply(self, room_id, database):
         # get room properties
-        room = database.query_room_data(room_id, True)
-        room_location = room["room_location"]
-        room_activity = room["room_activity"]
+        room = database.query_room_data(room_id)
+        # set last_activity of the room
+        room.set_last_activity()
+        room_location = room.get_room_location()
+        room_activity = room.get_room_activity()
 
         # initial prompt
         messages = [
@@ -50,9 +52,9 @@ class LLM:
             }
         ]
 
-        # adding the past questions asked by chatGPT and their votes
-        past_questions = room["questions"]
-        # got the reply we need, send it to the llm
+        # getting the past questions asked by chatGPT and their votes
+        past_questions = room.get_questions()
+        # formatted the reply we need, send it to the llm
         message_to_send = self.generate_llm_reply(
             past_questions=past_questions, message=messages
         )
@@ -68,9 +70,9 @@ class LLM:
             return activities, "activity"
         else:
             # todo: tell chatgpt to regenerate if there is no options
-            # todo: store questions and options
-            # todo: update room activity time
-            return question_and_options, "question"
+            # store the questions and room data
+            database.add_question_and_options(room, question_and_options)
+            return question_and_options.to_dict(), "question"
 
     def generate_llm_reply(self, past_questions, message):
         # given the past questions the llm asked, generate a new message to ask the llm
@@ -131,8 +133,8 @@ class LLM:
                 options=options_list,
             )
 
-            print(question.to_dict())
-            return question.to_dict()
+            logger.info(question)
+            return question
         except Exception:
             raise ValueError("Could not extract questions or options")
 
@@ -145,6 +147,8 @@ class LLM:
         for i in range(len(activities_matches)):
             activities[f"activity: {i + 1}"] = activities_matches[i]
         activities["num_of_activity"] = len(activities_matches)
+
+        logger.info(activities)
         return activities
 
     def retry_logic(self):

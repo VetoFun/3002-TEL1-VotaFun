@@ -64,7 +64,7 @@ def test_extract_question_options():
         "Would your group like to incorporate any food or snacks during the activity? "
     )
 
-    extracted_information = llm.extract_question_options(sample_reply)
+    extracted_information = llm.extract_question_options(sample_reply).to_dict()
     assert (
         extracted_information["question_id"]
         == sha1(
