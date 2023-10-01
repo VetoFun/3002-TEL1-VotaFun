@@ -1,9 +1,9 @@
+import pytest
+from hashlib import sha1
+
 from src.utils.LLM import LLM
 from src.database.Question import Question
 from src.database.Option import Option
-
-import pytest
-from hashlib import sha1
 
 
 @pytest.fixture
@@ -67,10 +67,13 @@ def sample_reprompt():
     )
 
 
-def test_extract_question_options():
-    # create LLM object
-    llm = LLM()
+@pytest.fixture
+def sample_llm():
+    # Create a sample LLM for testing
+    return LLM()
 
+
+def test_extract_question_options(sample_llm):
     sample_reply = (
         "Question 4: Would your group like to incorporate any food or snacks during the activity? \n"
         "1) Yes, we'd like to have snacks available. \n"
@@ -80,7 +83,7 @@ def test_extract_question_options():
         "Would your group like to incorporate any food or snacks during the activity? "
     )
 
-    extracted_information = llm.extract_question_options(sample_reply).to_dict()
+    extracted_information = sample_llm.extract_question_options(sample_reply).to_dict()
 
     assert (
         extracted_information["question_id"]
@@ -104,12 +107,14 @@ def test_extract_question_options():
     assert extracted_information["options"][1]["option_id"] == "2"
 
 
-def test_generate_llm_reply(sample_question, sample_messages, sample_reprompt):
-    llm = LLM()
+def test_generate_llm_reply(
+    sample_llm, sample_question, sample_messages, sample_reprompt
+):
+    llm_reply = sample_llm.generate_llm_reply(
+        past_questions=[], message=sample_messages
+    )
 
-    llm_reply = llm.generate_llm_reply(past_questions=[], message=sample_messages)
-
-    llm_reply_past_question = llm.generate_llm_reply(
+    llm_reply_past_question = sample_llm.generate_llm_reply(
         past_questions=[sample_question.to_dict()], message=sample_messages
     )
     assert llm_reply[0] == sample_messages[0]
@@ -123,16 +128,14 @@ def test_generate_llm_reply(sample_question, sample_messages, sample_reprompt):
     }
 
 
-def test_extract_activities(sample_question):
-    llm = LLM()
-
+def test_extract_activities(sample_llm, sample_question):
     sample_reply = (
         "Activity 1: Escape Room Challenge at Lost SG\n"
         "Description: activity 1 description\n"
         "Activity 2: Virtual Reality Experience at V-Room\n"
         "Description: activity 2 description\n"
     )
-    activities = llm.extract_activities(sample_reply)
+    activities = sample_llm.extract_activities(sample_reply)
     all_activities = activities["activities"]
 
     assert activities["num_of_activity"] == 2 == len(all_activities)
@@ -142,10 +145,8 @@ def test_extract_activities(sample_question):
     assert all_activities[1]["activity_id"] == "2"
 
 
-def test_extract_zero_activities(sample_question):
-    llm = LLM()
-
+def test_extract_zero_activities(sample_llm, sample_question):
     sample_reply = ""
-    activities = llm.extract_activities(sample_reply)
+    activities = sample_llm.extract_activities(sample_reply)
 
     assert activities["num_of_activity"] == 0

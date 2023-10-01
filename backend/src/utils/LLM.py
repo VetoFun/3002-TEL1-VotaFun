@@ -1,3 +1,5 @@
+import os
+
 import openai
 import re
 from hashlib import sha1
@@ -13,6 +15,8 @@ class LLM:
         self.activity_regex = r"Activity \d+: (.+)"
         self.question_regex = r"Question \d+: (.+)"
         self.option_regex = r"[0-9]\) (.+)"
+        # sets the api key
+        openai.api_key = os.getenv("OPENAI_API_KEY", "")
 
         # re prompts
         self.re_prompt = (
@@ -20,17 +24,6 @@ class LLM:
             "with 4 options to vote. Remember do not repeat or ask similar questions and options. "
             "Suggest 4 activities after question 5 and stop asking questions and options."
             "Format the questions in this manner: \n"
-            "Question <x>: <question>\n"
-            "1) <option 1>\n"
-            "2) <option 2>\n"
-            "3) <option 3>\n"
-            "4) <option 4>\n"
-        )
-        self.retry_prompt = (
-            "\nThere was not enough options provided last time. We are indecisive so give us a "
-            "properly formatted question with at least 2 options to vote. Remember do not repeat or "
-            "ask similar questions and options. Suggest 4 activities after question 5 and stop asking "
-            "questions and options. Follow this format to give us the questions: \n"
             "Question <x>: <question>\n"
             "1) <option 1>\n"
             "2) <option 2>\n"
@@ -128,7 +121,6 @@ class LLM:
 
             # adding the re prompt to ensure that llm almost always gives us what is expected.
             message[-1]["content"] += self.re_prompt
-        print(message)
         logger.info(message)
         return message
 
