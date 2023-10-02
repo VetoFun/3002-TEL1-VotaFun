@@ -10,6 +10,7 @@ from flask_socketio import (
 from flask import current_app as app
 from time import sleep
 import threading
+from json import dumps as jsonify
 
 from src.logger import logger
 from ..config import Config
@@ -39,7 +40,7 @@ class RoomManagement(Namespace):
                     {
                         "success": True,
                         "message": f"{request.sid} has disconnected.",
-                        "users": room_users,
+                        # "users": room_users,
                         "new_host": "",
                     },
                     to=room_id,
@@ -54,25 +55,17 @@ class RoomManagement(Namespace):
                 emit(
                     "disconnect_event",
                     {
-                        "success": True,
+                        "success": True,                        
                         "message": f"Someone disconnected. Host changed to {new_host['username']}.",
-                        "users": room_users,
+                        # "users": room_users,
                         "new_host": new_host["username"],
                     },
                     to=room_id,
                 )
             elif len(room_users) == 0:
                 app.database.remove_room_data(room_id=room_id)
-                emit(
-                    "disconnect_event",
-                    {
-                        "success": True,
-                        "message": f"Someone disconnected. No one left in the room. Room {room_id} has been closed.",
-                        "users": room_users,
-                        "new_host": "",
-                    },
-                    broadcast=True,
-                )
+
+            self.update_room_state(room_id, app.database.query_room_data(room_id=room_id))
         except KeyError as e:
             logger.info(e)
             emit(
@@ -84,6 +77,33 @@ class RoomManagement(Namespace):
                 broadcast=True,
             )
 
+    def on_create_room(self, data):
+        try:
+            # Add room to database
+            room_id = app.database.create_room()
+            join_room(room_id)
+
+            # Send message to all users in room
+            emit(
+                "create_room_event",
+                {
+                    "success": True,
+                    "room_id": room_id,
+                    "message": f"room {room_id} has been created.",
+                },
+                to=room_id,
+            )
+        except Exception as e:
+            logger.info(e)
+            emit(
+                "create_room_event",
+                {
+                    "success": False,
+                    "message": f"failed to create room due to {e}.",
+                },
+                to=request.sid,
+            )
+
     def on_join_room(self, data):
         room_id = data["room_id"]
         user_name = data["user_name"]
@@ -91,19 +111,15 @@ class RoomManagement(Namespace):
             join_room(room_id)
 
             # Add user to database
-            room_users = app.database.add_user(
+            # room_users = app.database.add_user(
+            #     room_id=room_id, user_id=request.sid, username=user_name
+            # )
+            app.database.add_user(
                 room_id=room_id, user_id=request.sid, username=user_name
             )
             # Send message to all users in room
-            emit(
-                "join_room_event",
-                {
-                    "success": True,
-                    "users": room_users,
-                    "message": f"{user_name} has joined the room {room_id}.",
-                },
-                to=room_id,
-            )
+            emit('join_room_event', {"success": True, "user_id": request.sid, "message": f"{user_name} has joined room {room_id}."}, to=request.sid)
+            self.update_room_state(room_id, app.database.query_room_data(room_id=room_id))
         except Exception as e:
             # User fails to join room, either room has started or room is at max capacity.
             logger.info(e)
@@ -376,3 +392,10 @@ class RoomManagement(Namespace):
                 {"success": False, "message": f"Something went wrong, due to {e}."},
                 to=room_id,
             )
+
+    def update_room_state(self, room_id, room):
+        emit(
+            "update_room_state_event",
+            {"success": True, "room": room.to_dict()},
+            to=room_id
+        )

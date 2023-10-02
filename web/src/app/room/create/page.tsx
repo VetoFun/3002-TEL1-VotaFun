@@ -1,6 +1,5 @@
 'use client';
 
-import { Loader } from '@/components/common/Loader';
 import { useEffect } from 'react';
 import { redirect } from 'next/navigation';
 import useGameStore from '@/stores/useGameStore';
@@ -12,9 +11,9 @@ export default function CreateRoomPage() {
   actions.createRoom(); // implement
 
   useEffect(() => {
-    // actions.createRoom();
-    // if (roomId) redirect(`/room/join/${roomId}`);
-    redirect(`/room/join/test`);
+    actions.createRoom();
+    if (roomId) redirect(`/room/join/${roomId}`);
+    else redirect('/');
   }, [actions, roomId]);
 
   return (

@@ -1,8 +1,9 @@
 // socketStore.js
 import { create } from 'zustand';
 import { io } from 'socket.io-client';
-import { useRoomStore } from './useRoomStore';
+import { UserState, useRoomStore } from './useRoomStore';
 import { use } from 'react';
+import { User } from '@/types/User';
 
 type GameState = {
   roomId: string;
@@ -18,6 +19,41 @@ export const useGameStore = create<GameState>((set, get) => {
   socket
     .onAny((event, ...args) => {
       console.log(event, args);
+    })
+    .on('create_room_event', (resp) => {
+      if (resp.success) {
+        set(() => ({ roomId: resp.room_id }));
+        console.log(resp.message);
+      } else {
+        console.error(resp.message);
+      }
+    })
+    .on('join_room_event', (resp) => {
+      if (resp.success) {
+        const userId = resp.user_id as string;
+        set(() => ({ userId: userId }));
+        console.log(resp.message);
+      } else {
+        console.error(resp.message);
+      }
+    })
+    .on('update_room_state_event', (resp) => {
+      if (resp.success) {
+        const users = resp.room.users as UserState[];
+        for (let i = 0; i < users.length; i++) {
+          if (resp.room.host_id == users[i].user_id) {
+            users[i].is_host = true;
+          }
+        }
+        console.log(resp, users);
+        useRoomStore.getState().updateUsers(users);
+      }
+    })
+    .on('disconnect_event', (resp) => {
+      // if (resp.success) {
+      //   const users = resp.users as UserState[];
+      //   useRoomStore.getState().updateUsers(users);
+      // }
     })
     .on('connect', () => {})
     .on('disconnect', () => {

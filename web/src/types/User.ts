@@ -1,6 +1,7 @@
 type User = {
-  id: string;
-  username: string;
+  user_id: string;
+  user_name: string;
+  is_host: boolean;
 };
 
 export type { User };

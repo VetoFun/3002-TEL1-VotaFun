@@ -12,6 +12,8 @@ export default function RoomLobbyPage() {
   const users = useRoomStore((state) => state.users);
   const userId = useGameStore((state) => state.userId);
 
+  console.log('page:' + users);
+
   const isRoomHost = users.find((user) => user.user_id === userId)?.is_host;
 
   return (

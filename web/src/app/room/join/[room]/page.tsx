@@ -3,12 +3,6 @@ import { motion } from 'framer-motion';
 import { Loader } from '@/components/common/Loader';
 import { UserNameInput } from '@/app/room/join/[room]/components/UserNameInput';
 
-interface JoinRoomPageProps {
-  params: {
-    room: number;
-  };
-}
-
 interface DashLineProps {
   width: string;
   x: string;
@@ -31,7 +25,7 @@ const DashLine = ({ x, y, width, color = 'bg-neutral', speed = 1.5, delay = 0 }:
   );
 };
 
-export default function JoinRoomPage({ params }: JoinRoomPageProps) {
+export default function JoinRoomPage() {
   return (
     <main className="h-screen w-screen">
       <div className="relative left-1/2 top-1/2 flex w-fit -translate-x-1/2 -translate-y-1/3 flex-col gap-2">
@@ -41,13 +35,6 @@ export default function JoinRoomPage({ params }: JoinRoomPageProps) {
         <UserNameInput />
       </div>
       <motion.div className="pointer-events-none fixed left-0 top-1/2 h-1/4 w-screen -translate-y-1/2">
-        {/* <motion.span
-          className="absolute top-1/2 block h-2 w-16 bg-neutral"
-          animate={{
-            x: ['110vw', '-110vw'],
-          }}
-          transition={{ duration: 1.5, repeat: Infinity, ease: [0.17, 0.67, 0.83, 0.67] }}
-        /> */}
         <DashLine x="left-0" y="top-1/2" width="w-16" color="bg-primary" />
         <DashLine x="left-0" y="top-2/3" width="w-10" color="bg-info" speed={3} delay={1} />
         <DashLine x="left-0" y="top-3/4" width="w-18" color="bg-error" speed={1} delay={2} />

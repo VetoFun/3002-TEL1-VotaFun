@@ -61,11 +61,19 @@ class Database:
             raise Exception(f"Room {room_id} has already started")
         if room.get_number_of_user() == room.get_max_capacity():
             raise Exception(f"Room {room_id} is at max capacity")
+        
         new_user = User(user_id=user_id, user_name=username)
         room.add_user(new_user)
-        # set host_id as current user if there's 1 user only.
+
         if room.get_number_of_user() == 1:
             room.set_host(new_user.user_id)
+            new_user.is_host = True
+
+        for user in room.users:
+            if room.host_id == user.user_id:
+                user.is_host = True
+
+        # set host_id as current user if there's 1 user only.
         self.store_room_data(room_id=room_id, room_data=room, pipeline=pipeline)
         return room.users
 
@@ -189,7 +197,8 @@ class Database:
         timestamp = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
         room_id = sha1(timestamp.encode("utf-8")).hexdigest()
         if self.r.exists(room_id):
-            raise ValueError(f"Room {room_id} already exists.")
+            return room_id
+            # raise ValueError(f"Room {room_id} already exists.")
         room = Room(room_id=room_id)
         self.store_room_data(room_id=room_id, room_data=room, pipeline=pipeline)
         return room_id
