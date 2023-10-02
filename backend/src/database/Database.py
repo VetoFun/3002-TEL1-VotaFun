@@ -61,7 +61,7 @@ class Database:
             raise Exception(f"Room {room_id} has already started")
         if room.get_number_of_user() == room.get_max_capacity():
             raise Exception(f"Room {room_id} is at max capacity")
-        
+
         new_user = User(user_id=user_id, user_name=username)
         room.add_user(new_user)
 
@@ -90,6 +90,8 @@ class Database:
         try:
             room.remove_user_from_id(user_id=user_id)
             is_host = user_id == room.host_id
+            if is_host and len(room.users) > 0:
+                self.change_host(room_id=room_id, new_host_id=room.users[0].user_id)
         except KeyError as e:
             logger.error(e)
             return room.users, False
@@ -250,3 +252,7 @@ class Database:
             raise ValueError("Only the host can kick users")
         room.remove_user_from_id(user_id=kick_user_id)
         self.store_room_data(room_id=room_id, room_data=room, pipeline=pipeline)
+
+    def is_host(self, room_id: str, user_id: str) -> bool:
+        room = self.query_room_data(room_id=room_id)
+        return room.host_id == user_id

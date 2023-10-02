@@ -76,6 +76,13 @@ class Room:
             and self.users == other.users
         )
 
+    @property
+    def host_name(self):
+        for user in self.users:
+            if user.user_id == self.host_id:
+                return user.user_name
+        return ""
+
     def get_question_from_id(self, question_id: str) -> Question:
         for question in self.questions:
             if question.question_id == question_id:

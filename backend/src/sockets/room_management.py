@@ -10,222 +10,228 @@ from flask_socketio import (
 from flask import current_app as app
 from time import sleep
 import threading
-from json import dumps as jsonify
 
 from src.logger import logger
 from ..config import Config
+from dataclasses import dataclass, asdict
+
+
+@dataclass
+class Message:
+    success: bool = None
+    message: str = None
+    data: dict = None
 
 
 class RoomManagement(Namespace):
     def on_connect(self):
         logger.info(f"Socket connected: {request.sid}")
+        message = Message(success=True, message="Socket connected successfully.")
         emit(
             "connection_event",
-            {"success": True, "message": "Socket connected successfully."},
+            asdict(message),
         )
 
     def on_disconnect(self):
         logger.info(f"Socket disconnected: {request.sid}")
+        message = Message()
+        event_name = "disconnect_event"
 
         try:
             # room before disconnect
             room_id = app.database.query_room_id_from_user_id(user_id=request.sid)
+
+            # remove user from database
             room_users, is_host = app.database.remove_user(
                 room_id=room_id, user_id=request.sid
             )
-            # if a normal user disconnect
+            message.success = True
+
             if not is_host:
-                emit(
-                    "disconnect_event",
-                    {
-                        "success": True,
-                        "message": f"{request.sid} has disconnected.",
-                        # "users": room_users,
-                        "new_host": "",
-                    },
-                    to=room_id,
+                message.message = f"{request.sid} has disconnected."
+            elif is_host and len(room_users) > 0:
+                new_host = app.database.query_room_data(room_id=room_id).host_name
+                message.message = (
+                    f"Host {request.sid} has disconnected. Host changed to {new_host}."
                 )
-
-            # if the person that disconnect is a host, and there are more people in the room
-            if is_host and len(room_users) > 0:
-                new_host = room_users[0]
-                app.database.change_host(
-                    room_id=room_id, new_host_id=new_host["user_id"]
-                )
-                emit(
-                    "disconnect_event",
-                    {
-                        "success": True,                        
-                        "message": f"Someone disconnected. Host changed to {new_host['username']}.",
-                        # "users": room_users,
-                        "new_host": new_host["username"],
-                    },
-                    to=room_id,
-                )
+                message.data = {"new_host": new_host}
             elif len(room_users) == 0:
-                app.database.remove_room_data(room_id=room_id)
+                self.on_close_room(data={"room_id": room_id})
 
-            self.update_room_state(room_id, app.database.query_room_data(room_id=room_id))
-        except KeyError as e:
-            logger.info(e)
             emit(
-                "disconnect_event",
-                {
-                    "success": False,
-                    "message": f"Something went wrong, unable to disconnect due to {e}",
-                },
+                event_name,
+                asdict(message),
+                to=room_id,
+            )
+            self.update_room_state(
+                room_id, app.database.query_room_data(room_id=room_id)
+            )
+
+        except Exception as e:
+            logger.info(e)
+            message.success = False
+            message.message = (
+                f"Something went wrong, unable to remove user from database due to {e}"
+            )
+            emit(
+                event_name,
+                asdict(message),
                 broadcast=True,
             )
 
     def on_create_room(self, data):
+        event_name = "create_room_event"
+        message = Message()
+
         try:
             # Add room to database
             room_id = app.database.create_room()
             join_room(room_id)
 
             # Send message to all users in room
+            message.success = True
+            message.message = f"room {room_id} has been created."
+            message.data = {"room_id": room_id}
             emit(
-                "create_room_event",
-                {
-                    "success": True,
-                    "room_id": room_id,
-                    "message": f"room {room_id} has been created.",
-                },
+                event_name,
+                asdict(message),
                 to=room_id,
             )
+
         except Exception as e:
             logger.info(e)
+            message.success = False
+            message.message = f"failed to create room due to {e}."
             emit(
-                "create_room_event",
-                {
-                    "success": False,
-                    "message": f"failed to create room due to {e}.",
-                },
+                event_name,
+                asdict(message),
                 to=request.sid,
             )
 
     def on_join_room(self, data):
         room_id = data["room_id"]
         user_name = data["user_name"]
+        user_id = request.sid
+
+        message = Message()
+        event_name = "join_room_event"
+
         try:
+            # Add user to database
+            app.database.add_user(room_id=room_id, user_id=user_id, username=user_name)
+
             join_room(room_id)
 
-            # Add user to database
-            # room_users = app.database.add_user(
-            #     room_id=room_id, user_id=request.sid, username=user_name
-            # )
-            app.database.add_user(
-                room_id=room_id, user_id=request.sid, username=user_name
+            message.success = True
+            message.message = f"{user_name} has joined room {room_id}."
+
+            self.update_room_state(
+                room_id, app.database.query_room_data(room_id=room_id)
             )
-            # Send message to all users in room
-            emit('join_room_event', {"success": True, "user_id": request.sid, "message": f"{user_name} has joined room {room_id}."}, to=request.sid)
-            self.update_room_state(room_id, app.database.query_room_data(room_id=room_id))
+
         except Exception as e:
             # User fails to join room, either room has started or room is at max capacity.
             logger.info(e)
-            emit(
-                "join_room_event",
-                {
-                    "success": False,
-                    "message": f"{user_name} failed to join room {room_id} due to {e}.",
-                },
-                to=room_id,
-            )
+            message.success = False
+            message.message = f"{user_name} failed to join room {room_id} due to {e}."
+
+        # Send message to all users in room
+        emit(
+            event_name,
+            asdict(message),
+            to=room_id,
+        )
 
     def on_leave_room(self, data):
         room_id = data["room_id"]
         user_name = data["user_name"]
         leave_room(room_id)
 
+        message = Message()
+        event_name = "leave_room_event"
+
         try:
             # Remove user from database
             room_users, is_host = app.database.remove_user(
                 room_id=room_id, user_id=request.sid
             )
-            # if a normal user leaves
+            message.success = True
+
             if not is_host:
-                emit(
-                    "leave_event",
-                    {
-                        "success": True,
-                        "message": f"{user_name} has left the room {room_id}.",
-                        "users": room_users,
-                        "new_host": "",
-                    },
-                    to=room_id,
+                message.message = f"{user_name} has left room {room_id}."
+            elif is_host and len(room_users) > 0:
+                new_host = app.database.query_room_data(room_id=room_id).host_name
+                message.message = (
+                    f"Host {user_name} has left. Host changed to {new_host}."
                 )
-            # if a host leaves and there are more people in the room
-            if is_host and len(room_users) > 0:
-                new_host = room_users[0]
-                app.database.change_host(
-                    room_id=room_id, new_host_id=new_host["user_id"]
-                )
-                emit(
-                    "leave_event",
-                    {
-                        "success": True,
-                        "message": f"{user_name} has left the room {room_id}. Host changed to {new_host['username']}.",
-                        "users": room_users,
-                        "new_host": new_host["username"],
-                    },
-                    to=room_id,
-                )
+                message.data = {"new_host": new_host}
             elif len(room_users) == 0:
-                # Remove room from database
-                self.on_close_room(data)
-                emit(
-                    "leave_event",
-                    {
-                        "success": True,
-                        "message": f"{user_name} has left the room {room_id}. No one left in the room.",
-                        "users": room_users,
-                        "new_host": "",
-                    },
-                    to=room_id,
-                )
+                self.on_close_room(data={"room_id": room_id})
+
+            self.update_room_state(
+                room_id, app.database.query_room_data(room_id=room_id)
+            )
+
         except Exception as e:
             logger.info(e)
-            emit(
-                "leave_event",
-                {
-                    "success": False,
-                    "message": f"Something went wrong, unable to leave due to {e}.",
-                },
-                to=room_id,
-            )
+            message.success = False
+            message.message = f"Something went wrong, unable to leave room due to {e}."
+
+        emit(
+            event_name,
+            asdict(message),
+            to=room_id,
+        )
 
     def on_close_room(self, data):
         room_id = data["room_id"]
-        close_room(room_id)
+        requesting_user_id = request.sid
+
+        message = Message()
+        event_name = "close_room_event"
+
+        # Check if room is empty or if user is host
+        room_data = app.database.query_room_data(room_id=room_id)
+        if len(room_data.users) > 0 and not app.database.is_host(
+            room_id=room_id, user_id=requesting_user_id
+        ):
+            message.success = False
+            message.message = "Only the host can close the room."
+            emit(
+                event_name,
+                asdict(message),
+                to=request.sid,
+            )
+            return
 
         try:
             # Remove room from database
-            num_of_rooms_closed = app.database.remove_room_data(room_id=room_id)
+            app.database.remove_room_data(room_id=room_id)
 
-            # Send message to all users in room
-            emit(
-                "close_room_event",
-                {
-                    "success": True,
-                    "message": f"Room {room_id} has been closed. Number of rooms closed is {num_of_rooms_closed}.",
-                },
-                broadcast=True,
-            )
+            close_room(room_id)
+
+            message.success = True
+            message.message = f"Room {room_id} has been closed."
+
         except Exception as e:
             logger.info(e)
-            emit(
-                "close_room_event",
-                {
-                    "success": False,
-                    "message": f"Something went wrong, unable to close room due to {e}.",
-                },
-                broadcast=True,
-            )
+            message.success = False
+            message.message = f"Something went wrong, unable to close room due to {e}."
+
+        # Send message to all users in room
+        emit(
+            event_name,
+            asdict(message),
+            to=room_id,
+        )
 
     def on_start_room(self, data):
         room_activity = data["room_activity"]
         room_location = data["room_location"]
         room_id = data["room_id"]
+
+        message = Message()
+        event_name = "start_room_event"
 
         try:
             app.database.start_room(
@@ -234,53 +240,54 @@ class RoomManagement(Namespace):
                 room_activity=room_activity,
                 requesting_user_id=request.sid,
             )
-            # Send message to all users in room
-            emit(
-                "start_room_event",
-                {"success": True, "message": f"Room {room_id} has started."},
-                broadcast=True,
-            )
+
+            message.success = True
+            message.message = f"Room {room_id} has started."
+
         except Exception as e:
             logger.info(e)
-            emit(
-                "start_room_event",
-                {
-                    "success": False,
-                    "message": f"Something went wrong, unable to start room {room_id} due to {e}.",
-                },
-                broadcast=True,
-            )
+            message.success = False
+            message.message = f"Something went wrong, unable to start room due to {e}."
+
+        # Send message to all users in room
+        emit(
+            event_name,
+            asdict(message),
+            to=room_id,
+        )
 
     def on_kick_user(self, data):
         room_id = data["room_id"]
-        # user to kick
-        kick_user_id = data["kick_user_id"]
-        kick_user_name = data["kick_user_name"]
+        user_id = data["user_id"]
+        user_name = data["user_name"]
+        request_user_id = request.sid
+
+        message = Message()
+        event_name = "kick_user_event"
+
         try:
             app.database.kick_user(
-                room_id=room_id, request_user_id=request.sid, kick_user_id=kick_user_id
+                room_id=room_id,
+                request_user_id=request_user_id,
+                kick_user_id=user_id,
             )
-            # remove the user
-            disconnect(sid=kick_user_id)
-            # Send message to all users in room
-            emit(
-                "kick_user_event",
-                {
-                    "success": True,
-                    "message": f"{kick_user_name} has been kicked by the host",
-                },
-                to=room_id,
-            )
+            disconnect(sid=user_id)
+            message.success = True
+            message.message = f"{user_name} has been kicked from room {room_id}."
+
         except Exception as e:
             logger.info(e)
-            emit(
-                "kick_user_event",
-                {
-                    "success": False,
-                    "message": f"Something went wrong, unable to kick {kick_user_name} due to {e}.",
-                },
-                to=room_id,
+            message.success = False
+            message.message = (
+                f"Something went wrong, unable to kick {user_name} due to {e}."
             )
+
+        # Send message to all users in room
+        emit(
+            event_name,
+            asdict(message),
+            to=room_id,
+        )
 
     def on_vote_option(self, data):
         room_id = data["room_id"]
@@ -288,85 +295,80 @@ class RoomManagement(Namespace):
         option_id = data["option_id"]
         user_name = data["user_name"]
 
+        message = Message()
+        event_name = "vote_option_event"
+
         try:
-            num_of_votes = app.database.increment_vote(
+            app.database.increment_vote(
                 room_id=room_id, question_id=question_id, option_id=option_id
             )
+            message.success = True
+            message.message = f"{user_name} has voted {option_id} for {question_id}."
 
-            emit(
-                "vote_option_event",
-                {
-                    "success": True,
-                    "message": f"{user_name} has voted {option_id} for {question_id}. "
-                    f"The number of votes for {question_id}, {option_id} is {num_of_votes}.",
-                },
-                to=room_id,
-            )
         except Exception as e:
             logger.info(e)
-            emit(
-                "vote_option_event",
-                {
-                    "success": False,
-                    "message": f"{user_name} cant vote {option_id} for {question_id}, due to {e}.",
-                },
-                to=room_id,
-            )
+            message.success = False
+            message.message = f"Something went wrong, unable to vote {option_id} for {question_id} due to {e}."
+
+        # Send message to only the user who voted
+        emit(
+            event_name,
+            asdict(message),
+            to=request.sid,
+        )
 
     def on_start_round(self, data):
         room_id = data["room_id"]
+
+        message = Message()
+        event_name = "start_round_event"
 
         try:
             # get_reply() will handle storing questions and options into the database, as well as updating the time.
             reply, type_of_reply = app.llm.get_reply(
                 room_id=room_id, database=app.database
             )
-            reply["success"] = True
-            # asking a question, we emit the question and options, then start the countdown
-            if type_of_reply == "question":
-                # reply = {"success": True
-                #          "question_id": "123",
-                #          "question_text": "What activity do you want to do?",
-                #          "options": [{
-                #                       "option_id": "1",
-                #                       "option_text": "Hiking",
-                #                       "votes": 0
-                #                       }],
-                #          }
-                emit(
-                    "start_round_event", reply, namespace="/room-management", to=room_id
-                )
 
-                # starts the countdown
+            message.success = True
+            message.message = f"Round started successfully for {room_id}."
+            message.data = reply
+
+            # Send message to all users in room
+            emit(
+                event_name,
+                asdict(message),
+                to=room_id,
+            )
+
+            # if reply is a question, start the countdown
+            if type_of_reply == "question":
+
                 @copy_current_request_context
                 def countdown_round():
-                    sleep(Config.TIMER)
+                    sleep(
+                        Config.TIMER + 2
+                    )  # add a buffer time of 2 seconds to ensure frontend timer are all up.
                     with app.app_context():
+                        message = Message(
+                            success=True, message=f"Round ended for {room_id}."
+                        )
                         emit(
                             "end_round_event",
-                            {"success": True, "message": f"Round ended for {room_id}."},
-                            namespace="/room-management",
+                            asdict(message),
+                            to=room_id,
                         )
 
                 countdown_thread = threading.Thread(target=countdown_round)
                 countdown_thread.start()
 
-            # giving the choice of activities, we just emit it instead.
-            else:
-                # reply = {"success": True,
-                #          'activities': [{'activity_id': '1', 'activity_text': 'Escape Room Challenge at Lost SG'},
-                #                         {'activity_id': '2', 'activity_text': 'Virtual Reality Experience at V-Room'}
-                #                         ],
-                #          'num_of_activity': 2}
-                emit(
-                    "start_round_event", reply, namespace="/room-management", to=room_id
-                )
         except Exception as e:
             logger.info(e)
+            message.success = False
+            message.message = f"Unable to start a round due to {e}."
+            # Send message to all users in room
             emit(
-                "start_round_event",
-                {"success": False, "message": f"Unable to start a round due to {e}."},
-                namespace="/room-management",
+                event_name,
+                asdict(message),
                 to=room_id,
             )
 
@@ -375,27 +377,32 @@ class RoomManagement(Namespace):
         room_location = data["room_location"]
         room_id = data["room_id"]
 
+        message = Message()
+        event_name = "set_room_properties_event"
+
         try:
-            emit(
-                "set_room_properties_event",
-                {
-                    "success": True,
-                    "message": f"Room {room_id} has set the activity to {room_activity} and "
-                    f"location to {room_location}.",
-                },
-                to=room_id,
-            )
+            room_data = app.database.query_room_data(room_id=room_id)
+            room_data.room_activity = room_activity
+            room_data.room_location = room_location
+            app.database.store_room_data(room_id=room_id, room_data=room_data)
+
+            message.success = True
+            message.message = f"Room {room_id} has set the activity to {room_activity} and location to {room_location}."
+
         except Exception as e:
             logger.info(e)
-            emit(
-                "set_room_properties_event",
-                {"success": False, "message": f"Something went wrong, due to {e}."},
-                to=room_id,
-            )
+            message.success = False
+            message.message = f"Unable to set room properties due to {e}."
+
+        # Send message to all users in room
+        emit(
+            event_name,
+            asdict(message),
+            to=room_id,
+        )
 
     def update_room_state(self, room_id, room):
-        emit(
-            "update_room_state_event",
-            {"success": True, "room": room.to_dict()},
-            to=room_id
+        message = Message(
+            success=True, message="Room state updated.", data={"room": room.to_dict()}
         )
+        emit("update_room_state_event", asdict(message), to=room_id)
