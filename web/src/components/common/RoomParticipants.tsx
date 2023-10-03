@@ -1,5 +1,5 @@
-import { useRoomStore } from '@/stores/useRoomStore';
 import { Participant } from './Participant';
+import useGameStore from '@/stores/useGameStore';
 
 function getInitials(username: string) {
   if (username.length === 0) return 'U';
@@ -7,19 +7,19 @@ function getInitials(username: string) {
 }
 
 const RoomParticipants = () => {
-  const users = useRoomStore((state) => state.users);
+  const [room] = useGameStore((state) => [state.room]);
 
   return (
     <aside className="flex h-screen w-80 flex-col bg-neutral py-6 text-base-100">
       <h2 className="border-b-2 pb-4 text-center text-2xl font-semibold ">Participants</h2>
       <div>
-        {users.map((user) => {
+        {room.users.map((user) => {
           return (
             <Participant
               key={user.user_id}
               initial={getInitials(user.user_name)}
               name={user.user_name}
-              host={user.is_host}
+              host={user.user_id == room.host_id}
             />
           );
         })}

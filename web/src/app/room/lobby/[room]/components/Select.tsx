@@ -10,7 +10,7 @@ const Select = ({ label, options, onChange }: SelectProps) => {
   const selectRef = useRef<HTMLSelectElement>(null);
 
   return (
-    <select className="select select-bordered select-error w-96 text-xl" ref={selectRef} onChange={onChange}>
+    <select className="select select-bordered select-error w-full text-xl" ref={selectRef} onChange={onChange}>
       <option disabled selected>
         {label}
       </option>

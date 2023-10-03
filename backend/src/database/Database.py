@@ -199,11 +199,11 @@ class Database:
         timestamp = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
         room_id = sha1(timestamp.encode("utf-8")).hexdigest()
         if self.r.exists(room_id):
-            return room_id
+            return self.query_room_data(room_id=room_id)
             # raise ValueError(f"Room {room_id} already exists.")
         room = Room(room_id=room_id)
         self.store_room_data(room_id=room_id, room_data=room, pipeline=pipeline)
-        return room_id
+        return room
 
     @redis_pipeline
     def change_host(

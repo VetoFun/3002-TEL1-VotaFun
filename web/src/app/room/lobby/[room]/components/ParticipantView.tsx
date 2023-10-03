@@ -1,14 +1,13 @@
-import { useRoomStore } from '@/stores/useRoomStore';
 import { Label } from './Label';
+import useGameStore from '@/stores/useGameStore';
 
 const ParticipantView = () => {
-  const [room, user] = useRoomStore((state) => [state.room, state.user]);
-  console.log(`in participant view, socketID: ${user?.id}`);
+  const room = useGameStore((state) => state.room);
 
   return (
     <>
-      <Label label="Location" text={room?.location || ''} />
-      <Label label="Activity" text={room?.activity || ''} />
+      <Label label="Location" text={room.room_location || ''} />
+      <Label label="Activity" text={room.room_activity || ''} />
     </>
   );
 };

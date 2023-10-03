@@ -1,5 +1,4 @@
 import useGameStore from '@/stores/useGameStore';
-import { useRoomStore } from '@/stores/useRoomStore';
 import { FaBan, FaCrown } from 'react-icons/fa';
 
 interface ParticipantProps {
@@ -8,11 +7,10 @@ interface ParticipantProps {
   host?: boolean;
 }
 
-function Participant({ initial, name, host }: ParticipantProps) {
-  const users = useRoomStore((state) => state.users);
-  const userId = useGameStore((state) => state.userId);
+function Participant({ initial, name }: ParticipantProps) {
+  const [user, room] = useGameStore((state) => [state.user, state.room]);
 
-  const isRoomHost = users.find((user) => user.user_id === userId)?.is_host;
+  const host = user.user_id == room.host_id;
 
   return (
     <div className="group flex w-full gap-2 px-4 py-2 align-middle transition-colors hover:bg-accent group-hover:text-neutral">
@@ -28,7 +26,7 @@ function Participant({ initial, name, host }: ParticipantProps) {
       </div>
       <div className="flex flex-1 justify-between">
         <p className="my-auto group-hover:text-neutral-content">{name}</p>
-        {isRoomHost && (
+        {host && (
           <div className="tooltip tooltip-error tooltip-left flex flex-col justify-center" data-tip="Kick User">
             <button className="btn btn-circle btn-error btn-xs">
               <FaBan />

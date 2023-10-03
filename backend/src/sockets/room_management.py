@@ -10,6 +10,7 @@ from flask_socketio import (
 from flask import current_app as app
 from time import sleep
 import threading
+import traceback
 
 from src.logger import logger
 from ..config import Config
@@ -26,10 +27,11 @@ class Message:
 class RoomManagement(Namespace):
     def on_connect(self):
         logger.info(f"Socket connected: {request.sid}")
-        message = Message(success=True, message="Socket connected successfully.")
+        message = Message(success=True, message=f"${request.sid} connected successfully.")
         emit(
-            "connection_event",
+            "client_connection_event",
             asdict(message),
+            to=request.sid,
         )
 
     def on_disconnect(self):
@@ -63,9 +65,8 @@ class RoomManagement(Namespace):
                 asdict(message),
                 to=room_id,
             )
-            self.update_room_state(
-                room_id, app.database.query_room_data(room_id=room_id)
-            )
+            room = app.database.query_room_data(room_id=room_id)
+            self.broadcast_room_user_change("leave_room_event", room)
 
         except Exception as e:
             logger.info(e)
@@ -80,26 +81,26 @@ class RoomManagement(Namespace):
             )
 
     def on_create_room(self, data):
-        event_name = "create_room_event"
+        event_name = "client_create_room_event"
         message = Message()
 
         try:
             # Add room to database
-            room_id = app.database.create_room()
-            join_room(room_id)
+            room = app.database.create_room()
+            logger.info(room)
 
             # Send message to all users in room
             message.success = True
-            message.message = f"room {room_id} has been created."
-            message.data = {"room_id": room_id}
+            message.message = f"room {room.room_id} has been created."
+            message.data = {"room": room.to_dict()}
             emit(
                 event_name,
                 asdict(message),
-                to=room_id,
+                to=request.sid,
             )
 
         except Exception as e:
-            logger.info(e)
+            logger.error(f'create_room: ${print(traceback.format_exc()) }${e}')
             message.success = False
             message.message = f"failed to create room due to {e}."
             emit(
@@ -121,26 +122,29 @@ class RoomManagement(Namespace):
             app.database.add_user(room_id=room_id, user_id=user_id, username=user_name)
 
             join_room(room_id)
+            room = app.database.query_room_data(room_id=room_id)
 
             message.success = True
             message.message = f"{user_name} has joined room {room_id}."
-
-            self.update_room_state(
-                room_id, app.database.query_room_data(room_id=room_id)
+            message.data = {"room": room.to_dict()}
+            emit(
+                "client_join_room_event",
+                asdict(message),
+                to=request.sid,
             )
+            self.broadcast_room_user_change("join_room_event", room)
 
         except Exception as e:
             # User fails to join room, either room has started or room is at max capacity.
-            logger.info(e)
+            logger.error(f'join_room: ${e}')
             message.success = False
             message.message = f"{user_name} failed to join room {room_id} due to {e}."
 
-        # Send message to all users in room
-        emit(
-            event_name,
-            asdict(message),
-            to=room_id,
-        )
+            emit(
+                'client_join_room_event',
+                asdict(message),
+                to=request.sid,
+            )
 
     def on_leave_room(self, data):
         room_id = data["room_id"]
@@ -168,20 +172,13 @@ class RoomManagement(Namespace):
             elif len(room_users) == 0:
                 self.on_close_room(data={"room_id": room_id})
 
-            self.update_room_state(
-                room_id, app.database.query_room_data(room_id=room_id)
-            )
+            room = app.database.query_room_data(room_id=room_id)
+            self.broadcast_room_user_change("leave_room_event", room)
 
         except Exception as e:
             logger.info(e)
             message.success = False
             message.message = f"Something went wrong, unable to leave room due to {e}."
-
-        emit(
-            event_name,
-            asdict(message),
-            to=room_id,
-        )
 
     def on_close_room(self, data):
         room_id = data["room_id"]
@@ -401,8 +398,8 @@ class RoomManagement(Namespace):
             to=room_id,
         )
 
-    def update_room_state(self, room_id, room):
+    def broadcast_room_user_change(self, event_name, room):
         message = Message(
             success=True, message="Room state updated.", data={"room": room.to_dict()}
         )
-        emit("update_room_state_event", asdict(message), to=room_id)
+        emit(event_name, asdict(message), to=room.room_id)

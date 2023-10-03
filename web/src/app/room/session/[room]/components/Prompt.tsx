@@ -3,7 +3,11 @@ interface PromptProps {
 }
 
 const Prompt = ({ text }: PromptProps) => {
-  return <div className="w-full rounded-lg p-8 px-12 text-center text-3xl font-light text-neutral-focus">{text}</div>;
+  return (
+    <div className="chat chat-start">
+      <div className="chat-bubble mx-auto w-full px-8 py-6 text-2xl">{text}</div>
+    </div>
+  );
 };
 
 export { Prompt };

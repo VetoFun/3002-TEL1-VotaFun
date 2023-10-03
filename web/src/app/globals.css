@@ -3,19 +3,20 @@
 @tailwind utilities;
 
 .bg-scroll-animated {
-    --bg-scroll-duration: 10s;
-  
-    background-size: 400%;
-    -webkit-animation: bg-animated var(--bg-scroll-duration) linear infinite;
-    -moz-animation: bg-animated var(--bg-scroll-duration) linear infinite;
-    animation: bg-animated var(--bg-scroll-duration) linear infinite;
-  }
+  --bg-scroll-duration: 10s;
 
-  @keyframes bg-animated {
-    0%, 100%{
-      background-position: 0% 50%;
-    }
-    50% {
-      background-position: 100% 50%;
-    }
+  background-size: 400%;
+  -webkit-animation: bg-animated var(--bg-scroll-duration) linear infinite;
+  -moz-animation: bg-animated var(--bg-scroll-duration) linear infinite;
+  animation: bg-animated var(--bg-scroll-duration) linear infinite;
+}
+
+@keyframes bg-animated {
+  0%,
+  100% {
+    background-position: 0% 50%;
   }
+  50% {
+    background-position: 100% 50%;
+  }
+}
