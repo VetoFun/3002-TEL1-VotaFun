@@ -165,6 +165,7 @@ class Database:
             raise KeyError(f"Room {room_id} has already set its activity and location")
         room.start_room(room_location=room_location, room_activity=room_activity)
         self.store_room_data(room_id=room_id, room_data=room, pipeline=pipeline)
+        return room
 
     @redis_pipeline
     def kick_user(
@@ -173,12 +174,13 @@ class Database:
         request_user_id: str,
         kick_user_id: str,
         pipeline: redis.Redis.pipeline,
-    ) -> None:
+    ) -> Room:
         room = self._query_room_data(room_id=room_id)
         if room.host_id != request_user_id:
             raise ValueError("Only the host can kick users")
         room.remove_user_from_id(user_id=kick_user_id)
         self.store_room_data(room_id=room_id, room_data=room, pipeline=pipeline)
+        return room
 
     @redis_pipeline
     def set_room_properties(
@@ -188,10 +190,11 @@ class Database:
         room_location: str,
         room_activity: str,
         pipeline: redis.Redis.pipeline,
-    ) -> None:
+    ) -> Room:
         room = self._query_room_data(room_id=room_id)
         if room.host_id != request_user_id:
             raise ValueError("Only the host can set room properties")
         room.room_activity = room_activity
         room.room_location = room_location
         self.store_room_data(room_id=room_id, room_data=room, pipeline=pipeline)
+        return room

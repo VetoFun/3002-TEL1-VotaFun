@@ -101,21 +101,17 @@ class RoomManagement(Namespace):
             message.success = True
             message.message = f"room {room.room_id} has been created."
             message.data = {"room": room.to_dict()}
-            emit(
-                event_name,
-                asdict(message),
-                to=request.sid,
-            )
 
         except Exception as e:
             logger.error(f"create_room: {print(traceback.format_exc())}")
             message.success = False
             message.message = f"failed to create room due to {e}."
-            emit(
-                event_name,
-                asdict(message),
-                to=request.sid,
-            )
+
+        emit(
+            event_name,
+            asdict(message),
+            to=request.sid,
+        )
 
     def on_join_room(self, data):
         room_id = data["room_id"]
@@ -242,7 +238,7 @@ class RoomManagement(Namespace):
         event_name = "start_room_event"
 
         try:
-            app.database.start_room(
+            room = app.database.start_room(
                 room_id=room_id,
                 room_location=room_location,
                 room_activity=room_activity,
@@ -251,6 +247,7 @@ class RoomManagement(Namespace):
 
             message.success = True
             message.message = f"Room {room_id} has started."
+            message.data = {"room": room.to_dict()}
 
         except Exception as e:
             logger.info(e)
@@ -274,7 +271,7 @@ class RoomManagement(Namespace):
         event_name = "kick_user_event"
 
         try:
-            app.database.kick_user(
+            room = app.database.kick_user(
                 room_id=room_id,
                 request_user_id=request_user_id,
                 kick_user_id=user_id,
@@ -282,6 +279,7 @@ class RoomManagement(Namespace):
             disconnect(sid=user_id)
             message.success = True
             message.message = f"{user_name} has been kicked from room {room_id}."
+            message.data = {"room": room.to_dict()}
 
         except Exception as e:
             logger.info(e)
@@ -389,7 +387,7 @@ class RoomManagement(Namespace):
         event_name = "set_room_properties_event"
 
         try:
-            app.database.set_room_properties(
+            room = app.database.set_room_properties(
                 room_id=room_id,
                 request_user_id=request.sid,
                 room_location=room_location,
@@ -398,6 +396,7 @@ class RoomManagement(Namespace):
 
             message.success = True
             message.message = f"Room {room_id} has set the activity to {room_activity} and location to {room_location}."
+            message.data = {"room": room.to_dict()}
 
         except Exception as e:
             logger.info(e)
@@ -411,8 +410,8 @@ class RoomManagement(Namespace):
             to=room_id,
         )
 
-    def broadcast_room_user_change(self, event_name, room):
+    def broadcast_room_user_change(self, event_name, room) -> None:
         message = Message(
-            success=True, message="Room state updated.", data={"room": room.to_dict()}
+            success=True, message="Room state updated", data={"room": room.to_dict()}
         )
         emit(event_name, asdict(message), to=room.room_id)
