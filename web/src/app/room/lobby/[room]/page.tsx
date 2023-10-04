@@ -23,8 +23,8 @@ export default function RoomLobbyPage() {
   return (
     <RoomLayout>
       <main className="relative left-1/2 top-1/2 flex w-fit -translate-x-1/2 -translate-y-1/2 flex-col gap-2">
-        <p className="mb-6 text-center text-2xl font-semibold uppercase">
-          Room ID:{' '}
+        <p className="mb-6 text-center text-2xl font-semibold">
+          <span className="uppercase">Room ID:</span>{' '}
           <code
             className="tooltip ml-2 rounded-md bg-accent p-3 px-4 hover:cursor-pointer"
             data-tip="Copy to Clipboard"

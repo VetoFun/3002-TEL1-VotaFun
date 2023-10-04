@@ -5,9 +5,6 @@ from flask_cors import CORS
 
 from src.database.Database import Database
 from src.utils.LLM import LLM
-from src.routes.Room import room_blueprint
-from src.routes.User import user_blueprint
-from src.routes.Chatgpt import chatgpt_blueprint
 
 socketio = SocketIO(cors_allowed_origins="*")
 
@@ -28,10 +25,6 @@ def create_app():
 
     app.llm = llm
     app.database = database
-
-    app.register_blueprint(room_blueprint)
-    app.register_blueprint(user_blueprint)
-    app.register_blueprint(chatgpt_blueprint)
 
     from src.sockets.room_management import RoomManagement
 
