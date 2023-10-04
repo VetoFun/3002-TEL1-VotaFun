@@ -39,14 +39,14 @@ class Room:
     def __init__(
         self,
         room_id: str,
+        room_location: str,
+        room_activity: str,
         number_of_user: int = 0,
         max_capacity: int = Config.MAX_CAPACITY,
         last_activity: str = datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         questions: List[Question] = [],
         host_id: str = "",
         status: str = RoomStatus.WAITING,
-        room_location: str = "",
-        room_activity: str = "",
         users: List[User] = [],
     ):
         self.room_id = room_id

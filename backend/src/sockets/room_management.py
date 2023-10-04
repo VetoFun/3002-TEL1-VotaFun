@@ -27,7 +27,9 @@ class Message:
 class RoomManagement(Namespace):
     def on_connect(self):
         logger.info(f"Socket connected: {request.sid}")
-        message = Message(success=True, message=f"${request.sid} connected successfully.")
+        message = Message(
+            success=True, message=f"${request.sid} connected successfully."
+        )
         emit(
             "client_connection_event",
             asdict(message),
@@ -44,32 +46,38 @@ class RoomManagement(Namespace):
             room_id = app.database.query_room_id_from_user_id(user_id=request.sid)
 
             # remove user from database
-            room_users, is_host = app.database.remove_user(
+            room, is_host, new_host_id = app.database.remove_user(
                 room_id=room_id, user_id=request.sid
             )
             message.success = True
 
+            if room.number_of_user == 0:
+                message.message = "Closing room..."
+                message.data = {
+                    "num_rooms_deleted": app.database.remove_room_data(room_id=room_id)
+                }
+                emit(
+                    event_name,
+                    asdict(message),
+                    to=room_id,
+                )
+                return
+            # there are still people in room
             if not is_host:
                 message.message = f"{request.sid} has disconnected."
-            elif is_host and len(room_users) > 0:
-                new_host = app.database.query_room_data(room_id=room_id).host_name
-                message.message = (
-                    f"Host {request.sid} has disconnected. Host changed to {new_host}."
-                )
-                message.data = {"new_host": new_host}
-            elif len(room_users) == 0:
-                self.on_close_room(data={"room_id": room_id})
+            else:
+                message.message = f"Host {request.sid} has disconnected. Host changed to {new_host_id}."
+                message.data = {"new_host": new_host_id}
 
             emit(
                 event_name,
                 asdict(message),
                 to=room_id,
             )
-            room = app.database.query_room_data(room_id=room_id)
             self.broadcast_room_user_change("leave_room_event", room)
 
         except Exception as e:
-            logger.info(e)
+            logger.error(e)
             message.success = False
             message.message = (
                 f"Something went wrong, unable to remove user from database due to {e}"
@@ -77,7 +85,7 @@ class RoomManagement(Namespace):
             emit(
                 event_name,
                 asdict(message),
-                broadcast=True,
+                to=room_id,
             )
 
     def on_create_room(self, data):
@@ -100,7 +108,7 @@ class RoomManagement(Namespace):
             )
 
         except Exception as e:
-            logger.error(f'create_room: ${print(traceback.format_exc()) }${e}')
+            logger.error(f"create_room: {print(traceback.format_exc())}")
             message.success = False
             message.message = f"failed to create room due to {e}."
             emit(
@@ -119,10 +127,11 @@ class RoomManagement(Namespace):
 
         try:
             # Add user to database
-            app.database.add_user(room_id=room_id, user_id=user_id, username=user_name)
+            room = app.database.add_user(
+                room_id=room_id, user_id=user_id, username=user_name
+            )
 
             join_room(room_id)
-            room = app.database.query_room_data(room_id=room_id)
 
             message.success = True
             message.message = f"{user_name} has joined room {room_id}."
@@ -132,16 +141,16 @@ class RoomManagement(Namespace):
                 asdict(message),
                 to=request.sid,
             )
-            self.broadcast_room_user_change("join_room_event", room)
+            self.broadcast_room_user_change(event_name=event_name, room=room)
 
         except Exception as e:
             # User fails to join room, either room has started or room is at max capacity.
-            logger.error(f'join_room: ${e}')
+            logger.error(f"join_room: {e}")
             message.success = False
             message.message = f"{user_name} failed to join room {room_id} due to {e}."
 
             emit(
-                'client_join_room_event',
+                "client_join_room_event",
                 asdict(message),
                 to=request.sid,
             )
@@ -149,30 +158,44 @@ class RoomManagement(Namespace):
     def on_leave_room(self, data):
         room_id = data["room_id"]
         user_name = data["user_name"]
-        leave_room(room_id)
 
         message = Message()
         event_name = "leave_room_event"
 
         try:
             # Remove user from database
-            room_users, is_host = app.database.remove_user(
+            room, is_host, new_host_id = app.database.remove_user(
                 room_id=room_id, user_id=request.sid
             )
             message.success = True
 
-            if not is_host:
-                message.message = f"{user_name} has left room {room_id}."
-            elif is_host and len(room_users) > 0:
-                new_host = app.database.query_room_data(room_id=room_id).host_name
-                message.message = (
-                    f"Host {user_name} has left. Host changed to {new_host}."
-                )
-                message.data = {"new_host": new_host}
-            elif len(room_users) == 0:
-                self.on_close_room(data={"room_id": room_id})
+            leave_room(room_id)
 
-            room = app.database.query_room_data(room_id=room_id)
+            if room.number_of_user == 0:
+                message.message = "Closing room..."
+                message.data = {
+                    "num_rooms_deleted": app.database.remove_room_data(room_id=room_id)
+                }
+                emit(
+                    event_name,
+                    asdict(message),
+                    to=room_id,
+                )
+                return
+            # there are still people in room
+            if not is_host:
+                message.message = f"{request.sid} has disconnected."
+            else:
+                message.message = (
+                    f"Host {user_name} has disconnected. Host changed to {new_host_id}."
+                )
+                message.data = {"new_host": new_host_id}
+
+            emit(
+                event_name,
+                asdict(message),
+                to=room_id,
+            )
             self.broadcast_room_user_change("leave_room_event", room)
 
         except Exception as e:
@@ -187,28 +210,16 @@ class RoomManagement(Namespace):
         message = Message()
         event_name = "close_room_event"
 
-        # Check if room is empty or if user is host
-        room_data = app.database.query_room_data(room_id=room_id)
-        if len(room_data.users) > 0 and not app.database.is_host(
-            room_id=room_id, user_id=requesting_user_id
-        ):
-            message.success = False
-            message.message = "Only the host can close the room."
-            emit(
-                event_name,
-                asdict(message),
-                to=request.sid,
-            )
-            return
-
         try:
-            # Remove room from database
-            app.database.remove_room_data(room_id=room_id)
-
             close_room(room_id)
 
             message.success = True
             message.message = f"Room {room_id} has been closed."
+            message.data = {
+                "num_rooms_deleted": app.database.user_close_room(
+                    room_id=room_id, user_id=requesting_user_id
+                )
+            }
 
         except Exception as e:
             logger.info(e)
@@ -378,10 +389,12 @@ class RoomManagement(Namespace):
         event_name = "set_room_properties_event"
 
         try:
-            room_data = app.database.query_room_data(room_id=room_id)
-            room_data.room_activity = room_activity
-            room_data.room_location = room_location
-            app.database.store_room_data(room_id=room_id, room_data=room_data)
+            app.database.set_room_properties(
+                room_id=room_id,
+                request_user_id=request.sid,
+                room_location=room_location,
+                room_activity=room_activity,
+            )
 
             message.success = True
             message.message = f"Room {room_id} has set the activity to {room_activity} and location to {room_location}."
