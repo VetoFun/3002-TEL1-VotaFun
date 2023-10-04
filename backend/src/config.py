@@ -8,6 +8,7 @@ class Config:
     MAX_CAPACITY = 10
     WATCH_ERROR_RETRIES = 5
     TIMER = 60
+    BUFFER_TIMER = 2
 
 
 class DevelopmentConfig(Config):

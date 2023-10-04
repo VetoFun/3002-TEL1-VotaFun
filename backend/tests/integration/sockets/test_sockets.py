@@ -68,6 +68,7 @@ def _create_room_with_2_people(
 def clients(server_namespace, charles_data, roy_data, mocker):
     app = create_app()
     app.database = mocker.MagicMock(spec=Database)
+    app.database.add_user.return_value = {}
     socketio.init_app(app)
     app.testing = True
     client1 = SocketIOTestClient(app, socketio)

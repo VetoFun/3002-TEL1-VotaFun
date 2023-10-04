@@ -28,7 +28,7 @@ class RoomManagement(Namespace):
     def on_connect(self):
         logger.info(f"Socket connected: {request.sid}")
         message = Message(
-            success=True, message=f"${request.sid} connected successfully."
+            success=True, message=f"{request.sid} connected successfully."
         )
         emit(
             "client_connection_event",
@@ -207,8 +207,6 @@ class RoomManagement(Namespace):
         event_name = "close_room_event"
 
         try:
-            close_room(room_id)
-
             message.success = True
             message.message = f"Room {room_id} has been closed."
             message.data = {
@@ -216,43 +214,12 @@ class RoomManagement(Namespace):
                     room_id=room_id, user_id=requesting_user_id
                 )
             }
+            close_room(room_id)
 
         except Exception as e:
             logger.info(e)
             message.success = False
             message.message = f"Something went wrong, unable to close room due to {e}."
-
-        # Send message to all users in room
-        emit(
-            event_name,
-            asdict(message),
-            to=room_id,
-        )
-
-    def on_start_room(self, data):
-        room_activity = data["room_activity"]
-        room_location = data["room_location"]
-        room_id = data["room_id"]
-
-        message = Message()
-        event_name = "start_room_event"
-
-        try:
-            room = app.database.start_room(
-                room_id=room_id,
-                room_location=room_location,
-                room_activity=room_activity,
-                requesting_user_id=request.sid,
-            )
-
-            message.success = True
-            message.message = f"Room {room_id} has started."
-            message.data = {"room": room.to_dict()}
-
-        except Exception as e:
-            logger.info(e)
-            message.success = False
-            message.message = f"Something went wrong, unable to start room due to {e}."
 
         # Send message to all users in room
         emit(
@@ -323,7 +290,9 @@ class RoomManagement(Namespace):
             to=request.sid,
         )
 
-    def on_start_round(self, data):
+    def start_voting_round(self, data):
+        """Return True, type_of_reply if success, else return False, error"""
+
         room_id = data["room_id"]
 
         message = Message()
@@ -346,37 +315,90 @@ class RoomManagement(Namespace):
                 to=room_id,
             )
 
-            # if reply is a question, start the countdown
-            if type_of_reply == "question":
+            # start the count down regardless of the type of the question
 
-                @copy_current_request_context
-                def countdown_round():
-                    sleep(
-                        Config.TIMER + 2
-                    )  # add a buffer time of 2 seconds to ensure frontend timer are all up.
-                    with app.app_context():
-                        message = Message(
-                            success=True, message=f"Round ended for {room_id}."
-                        )
-                        emit(
-                            "end_round_event",
-                            asdict(message),
-                            to=room_id,
-                        )
+            @copy_current_request_context
+            def countdown_round():
+                sleep(
+                    Config.TIMER + Config.BUFFER_TIMER
+                )  # add a buffer time of 2 seconds to ensure frontend timer are all up.
 
-                countdown_thread = threading.Thread(target=countdown_round)
-                countdown_thread.start()
+            countdown_thread = threading.Thread(target=countdown_round)
+            countdown_thread.start()
+            countdown_thread.join()
+            return True, type_of_reply
+
+        except Exception as err:
+            logger.info(err)
+            return False, err
+
+    def on_start_room(self, data):
+        room_activity = data["room_activity"]
+        room_location = data["room_location"]
+        room_id = data["room_id"]
+
+        message = Message()
+        event_name = "start_room_event"
+
+        try:
+            room = app.database.start_room(
+                room_id=room_id,
+                room_location=room_location,
+                room_activity=room_activity,
+                requesting_user_id=request.sid,
+            )
+
+            message.success = True
+            message.message = f"Room {room_id} has started."
+            message.data = {"room": room.to_dict()}
 
         except Exception as e:
             logger.info(e)
             message.success = False
-            message.message = f"Unable to start a round due to {e}."
-            # Send message to all users in room
-            emit(
-                event_name,
-                asdict(message),
-                to=room_id,
-            )
+            message.message = f"Something went wrong, unable to start room due to {e}."
+
+        # Send message to all users in room
+        emit(
+            event_name,
+            asdict(message),
+            to=room_id,
+        )
+
+        # start voting
+        while True:
+            success, return_text = self.start_voting_round(data={"room_id": room_id})
+            if not success:
+                message = Message(
+                    success=False,
+                    message=f"Unable to start a round due to {return_text}.",
+                )
+                emit(
+                    event_name,
+                    asdict(message),
+                    to=room_id,
+                )
+                break
+
+            if return_text == "question":
+                message = Message(
+                    success=True,
+                    message=f"Round ended for {room_id}. Preparing to next round.",
+                )
+                emit(
+                    "end_round_event",
+                    asdict(message),
+                    to=room_id,
+                )
+            else:
+                room_result = app.database.get_room_final_result(room_id=room_id)
+                message = Message()
+                message.success = True
+                message.message = (
+                    f"Voting session ended for {room_id}. Room result is {room_result}."
+                )
+                message.data = {"room_result": room_result}
+                emit("end_voting_session_event", asdict(message), to=room_id)
+                break
 
     def on_set_room_properties(self, data):
         room_activity = data["room_activity"]

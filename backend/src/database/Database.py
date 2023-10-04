@@ -198,3 +198,7 @@ class Database:
         room.room_location = room_location
         self.store_room_data(room_id=room_id, room_data=room, pipeline=pipeline)
         return room
+
+    def get_room_final_result(self, room_id: str) -> Tuple[bool, str]:
+        room = self._query_room_data(room_id=room_id)
+        return room.get_final_result()

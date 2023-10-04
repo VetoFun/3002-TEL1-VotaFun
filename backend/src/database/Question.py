@@ -12,11 +12,16 @@ class Question:
     """
 
     def __init__(
-        self, question_id: str, question_text: str, options: List[Option] = []
+        self,
+        question_id: str,
+        question_text: str,
+        options: List[Option] = [],
+        last_question: bool = False,
     ):
         self.question_id = question_id
         self.question_text = question_text
         self.options = options
+        self.last_question = last_question
 
     def __eq__(self, other):
         if not isinstance(other, Question):
@@ -75,3 +80,12 @@ class Question:
         return cls(
             question_id=question_id, question_text=question_text, options=options
         )
+
+    def get_most_voted_option(self) -> Option:
+        """
+        Returns the option with the most votes.
+
+        Returns:
+            Option: The option with the most votes.
+        """
+        return max(self.options, key=lambda option: option.current_votes)

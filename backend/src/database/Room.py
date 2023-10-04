@@ -198,3 +198,10 @@ class Room:
             questions=questions,
             users=users,
         )
+
+    def get_final_result(self):
+        """Return True, result if all questions have been answered, else return False, None"""
+        for question in self.questions:
+            if question.last_question:
+                return True, question.get_most_voted_option()
+        return False, None

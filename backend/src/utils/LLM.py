@@ -83,6 +83,16 @@ class LLM:
 
         # llm returned activity options we return it
         if activities["num_of_activity"] != 0:
+            if activities["num_of_activity"] > 1:
+                question_text = "Which activity would you like to do?"
+                question_id = sha1(question_text.encode("utf-8")).hexdigest()
+                question = Question(
+                    question_id=question_id,
+                    question_text=question_text,
+                    options=activities["activities"],
+                    last_question=True,
+                )
+                database.add_question_and_options(room, question)
             return activities, "activity"
         else:
             # tell chatgpt to regenerate if there is < 2 options
