@@ -291,7 +291,7 @@ class RoomManagement(Namespace):
         )
 
     def start_voting_round(self, data):
-        """Return True, type_of_reply if success, else return False, error"""
+        """Return True, type_of_reply if success, else return False, None"""
 
         room_id = data["room_id"]
 
@@ -330,7 +330,16 @@ class RoomManagement(Namespace):
 
         except Exception as err:
             logger.info(err)
-            return False, err
+            message = Message(
+                success=False,
+                message=f"Unable to start a round due to {err}.",
+            )
+            emit(
+                event_name,
+                asdict(message),
+                to=room_id,
+            )
+            return False, None
 
     def on_start_room(self, data):
         room_activity = data["room_activity"]
@@ -366,20 +375,12 @@ class RoomManagement(Namespace):
 
         # start voting
         while True:
-            success, return_text = self.start_voting_round(data={"room_id": room_id})
+            success, type_of_reply = self.start_voting_round(data={"room_id": room_id})
             if not success:
-                message = Message(
-                    success=False,
-                    message=f"Unable to start a round due to {return_text}.",
-                )
-                emit(
-                    event_name,
-                    asdict(message),
-                    to=room_id,
-                )
                 break
 
-            if return_text == "question":
+            logger.debug(type_of_reply)
+            if type_of_reply == "question":
                 message = Message(
                     success=True,
                     message=f"Round ended for {room_id}. Preparing to next round.",
@@ -390,13 +391,18 @@ class RoomManagement(Namespace):
                     to=room_id,
                 )
             else:
-                room_result = app.database.get_room_final_result(room_id=room_id)
                 message = Message()
-                message.success = True
-                message.message = (
-                    f"Voting session ended for {room_id}. Room result is {room_result}."
+                reached_last_question, room_result = app.database.get_room_final_result(
+                    room_id=room_id
                 )
-                message.data = {"room_result": room_result}
+                if reached_last_question:
+                    message.success = True
+                    message.message = f"Voting session ended for {room_id}. Room result is {room_result.option_text}."
+                    message.data = {"room_result": room_result.todict()}
+                else:
+                    message.success = False
+                    message.message = f"Unable to get room result for {room_id}. Room has not reached last question."
+
                 emit("end_voting_session_event", asdict(message), to=room_id)
                 break
 
