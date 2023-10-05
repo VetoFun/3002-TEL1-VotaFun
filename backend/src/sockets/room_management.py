@@ -300,7 +300,7 @@ class RoomManagement(Namespace):
         user_name = data["user_name"]
 
         message = Message()
-        event_name = "vote_option_event"
+        event_name = "client_vote_option_event"
 
         try:
             app.database.increment_vote(
@@ -324,6 +324,7 @@ class RoomManagement(Namespace):
     def start_voting_round(self, data):
         """Return True, type_of_reply if success, else return False, None"""
 
+        logger.debug("Starting voting round")
         room_id = data["room_id"]
 
         message = Message()
@@ -334,6 +335,8 @@ class RoomManagement(Namespace):
             reply, type_of_reply = app.llm.get_reply(
                 room_id=room_id, database=app.database
             )
+
+            # logger.debug(reply, type_of_reply)
 
             message.success = True
             message.message = f"Round started successfully for {room_id}."
@@ -380,6 +383,7 @@ class RoomManagement(Namespace):
         message = Message()
         event_name = "start_room_event"
 
+        logger.info(f"Starting room {room_id}")
         try:
             room = app.database.start_room(
                 room_id=room_id,

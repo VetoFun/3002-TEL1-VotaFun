@@ -33,7 +33,7 @@ class LLM:
 
     def get_reply(self, room_id, database):
         # get room properties
-        room = database.query_room_data(room_id)
+        room = database._query_room_data(room_id)
         # set last_activity of the room
         room.set_last_activity()
         room_location = room.get_room_location()

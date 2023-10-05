@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { redirect } from 'next/navigation';
+import { RedirectType, redirect } from 'next/navigation';
 import useGameStore from '@/stores/useGameStore';
 
 export default function CreateRoomPage() {
@@ -11,7 +11,7 @@ export default function CreateRoomPage() {
   actions.createRoom();
 
   useEffect(() => {
-    if (room.room_id) redirect(`/room/join/${room.room_id}`);
+    if (room.room_id) redirect(`/room/join/${room.room_id}`, RedirectType.replace);
   }, [room]);
 
   return (

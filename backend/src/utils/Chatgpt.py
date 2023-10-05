@@ -17,7 +17,7 @@ def chatgpt_func(data, database):
 
     # get the room dictionary
     try:
-        room = database.query_room_data(room_id, True)
+        room = database._query_room_data(room_id, True)
         room_location = room["room_location"]
         room_activity = room["room_activity"]
     except KeyError:
