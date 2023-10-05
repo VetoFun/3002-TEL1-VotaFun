@@ -61,7 +61,7 @@ class LLM:
                 f"<option 3>) <number of votes for 3>\n"
                 f"<option 4>) <number of votes for 4>\n"
                 f"After 5 questions, based on the votes suggest 4 {room_activity} activity in {room_location} "
-                f"Singapore using this format.\n"
+                f"Singapore using this format. The activity must be in Singapore, and include the location as well. \n"
                 f"Activity x: <activity name>\n"
                 f"You do not need to show the votes at the end. Only suggest 4 activities after question 5. The "
                 f"4 activity suggested must be in Singapore and only show me the suggested activities.",
@@ -83,17 +83,17 @@ class LLM:
 
         # llm returned activity options we return it
         if activities["num_of_activity"] != 0:
-            if activities["num_of_activity"] > 1:
-                question_text = "Which activity would you like to do?"
-                question_id = sha1(question_text.encode("utf-8")).hexdigest()
-                question = Question(
-                    question_id=question_id,
-                    question_text=question_text,
-                    options=activities["activities"],
-                    last_question=True,
-                )
-                database.add_question_and_options(room, question)
-            return activities, "activity"
+            # if activities["num_of_activity"] > 1:
+            question_text = "Which activity would you like to do?"
+            question_id = sha1(question_text.encode("utf-8")).hexdigest()
+            question = Question(
+                question_id=question_id,
+                question_text=question_text,
+                options=activities["activities"],
+                last_question=True,
+            )
+            database.add_question_and_options(room, question)
+            return question.to_dict(), "activity"
         else:
             # tell chatgpt to regenerate if there is < 2 options
             if len(question_and_options.to_dict()["options"]) < 2:
@@ -151,7 +151,8 @@ class LLM:
         question_matches = re.findall(self.question_regex, llm_reply)
         option_matches = re.findall(self.option_regex, llm_reply)
 
-        try:
+        # if ChatGPT gives activity then we skip this part
+        if len(question_matches) > 0:
             options_list = []
             for i in range(len(option_matches)):
                 option = Option(option_id=str(i + 1), option_text=option_matches[i])
@@ -166,8 +167,6 @@ class LLM:
 
             logger.info(question.to_dict())
             return question
-        except Exception:
-            raise ValueError("Could not extract questions or options")
 
     def extract_activities(self, llm_reply):
         # format into a json that can be emitted
@@ -176,11 +175,14 @@ class LLM:
         activities = []
 
         for i in range(len(activities_matches)):
+            # activities.append(
+            #     {"activity_id": str(i + 1), "activity_text": activities_matches[i]}
+            # )
             activities.append(
-                {"activity_id": str(i + 1), "activity_text": activities_matches[i]}
+                Option(option_id=str(i + 1), option_text=activities_matches[i])
             )
 
-        logger.info(activities)
+        # logger.info(activities)
         return {"activities": activities, "num_of_activity": len(activities)}
 
     def retry_logic(self, message):
