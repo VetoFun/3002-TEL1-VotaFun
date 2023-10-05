@@ -1,12 +1,12 @@
 import { create } from 'zustand';
 
-type UserState = {
+export type UserState = {
   user_id: string;
   user_name: string;
   is_host: boolean;
 };
 
-type RoomState = {
+export type RoomState = {
   room_id: string;
   users: UserState[];
   location: string;

@@ -89,8 +89,10 @@ def test_set_host(sample_room):
 
 def test_start_room(sample_room):
     # Test starting the room
-    sample_room.start_room()
+    sample_room.start_room(room_location="west", room_activity="outdoor")
     assert sample_room.status == RoomStatus.STARTED
+    assert sample_room.room_location == "west"
+    assert sample_room.room_activity == "outdoor"
 
 
 def test_is_room_still_active(sample_room):

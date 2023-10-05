@@ -1,32 +1,21 @@
 'use client';
 
-import { useDebugStore } from '@/stores/useDebugStore';
 import { RoomLayout } from '@/components/layout/RoomLayout';
 import { Prompt } from './components/Prompt';
-// import { useParams } from 'next/navigation';
 import { Vote } from './components/Vote';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 
 export default function RoomLobbyPage() {
-  // const params = useParams();
-  const [admin, setAdmin] = useDebugStore((state) => [state.admin, state.setAdmin]);
+  const [progress, setProgress] = useState(100);
 
-  const [progress, setProgress] = useState(0);
+  setTimeout(() => {
+    setProgress(progress - 0.5);
 
-  // Sample response from /chatgpt:
-  //   {
-  //     "num_of_options": 4,
-  //     "options": {
-  //         "1": " Water-based activity",
-  //         "2": " Land-based activity",
-  //         "3": " I'm not sure",
-  //         "4": " None of the above"
-  //     },
-  //     "question": "Do you want to do a water-based activity or a land-based activity?",
-  //     "question_id": "7df85f6853df0ab2e2f91b1bab93ecd0f77d7715",
-  //     "success": true
-  // }
+    if (progress <= 0) {
+      setProgress(100);
+    }
+  }, 500);
 
   const percentageToSeconds = (percentage: number) => {
     return Math.round(percentage * 0.6);
@@ -57,24 +46,6 @@ export default function RoomLobbyPage() {
           </div>
         </div>
       </main>
-      {/* debugging */}
-      <div className="absolute bottom-20 left-1 flex h-16 flex-col gap-4">
-        <input
-          type="checkbox"
-          onChange={() => setAdmin(!admin)}
-          className="toggle toggle-success absolute bottom-1 left-1"
-        />
-        <input
-          type="range"
-          min="0"
-          max="100"
-          value={progress}
-          className="range"
-          onChange={(e) => {
-            setProgress(parseFloat(e.target.value));
-          }}
-        />
-      </div>
     </RoomLayout>
   );
 }

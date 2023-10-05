@@ -1,48 +1,134 @@
 // socketStore.js
 import { create } from 'zustand';
 import { io } from 'socket.io-client';
-import { useRoomStore } from './useRoomStore';
-import { use } from 'react';
+import { User } from '@/types/User';
+import { Room } from '@/types/Room';
+import { ConnectionStatus } from '@/types/Connection';
 
-type GameState = {
-  roomId: string;
-  userId: string;
+type GameStore = {
+  status: ConnectionStatus;
+  room: Room;
+  user: User;
   actions: {
     createRoom: () => void;
     joinRoom: (roomId: string, username: string) => void;
   };
 };
 
-export const useGameStore = create<GameState>((set, get) => {
+export const useGameStore = create<GameStore>((set, get) => {
   const socket = io('http://localhost:5001/room-management');
-  socket
-    .onAny((event, ...args) => {
-      console.log(event, args);
-    })
-    .on('connect', () => {})
-    .on('disconnect', () => {
-      // set(() => ({ roomId: '', userId: '' }));
-      // useRoomStore.getState().(resp);
-    })
-    .on('create_room', (resp) => {
-      if (!get().roomId) set(() => ({ roomId: resp.room_id })); // bug - may change whenever anyone joins
-    })
-    .on('join_room', (resp) => {
-      if (!get().userId) set(() => ({ userId: resp.user_id })); // bug - may change whenever anyone joins
-    })
-    .on('update_room', (resp) => {
-      useRoomStore.getState().updateUsers(resp);
-    });
+
+  const checkConnection = () => {
+    // if (get().status == ConnectionStatus.DISCONNECTED) throw new Error('You are not connected');
+  };
+
+  const reset = () => {
+    socket.disconnect();
+
+    set(() => ({
+      status: ConnectionStatus.DISCONNECTED,
+      room: {
+        room_id: '',
+        number_of_user: 0,
+        max_capacity: 0,
+        last_activity: '',
+        questions: [],
+        host_id: '',
+        status: '',
+        room_location: '',
+        room_activity: '',
+        users: [],
+      },
+      user: {
+        user_id: '',
+        user_name: '',
+      },
+    }));
+  };
+
+  // Socket Standard Events
+  // socket.onAny((event, ...args) => {
+  //   console.debug(event, args);
+  // });
+
+  socket.on('connect', () => {
+    if (get().status == ConnectionStatus.DISCONNECTED && socket.connected) {
+      set(() => ({ status: ConnectionStatus.CONNECTED, user: { user_id: socket.id, user_name: '' } }));
+    }
+  });
+
+  socket.on('disconnect', () => {
+    if (socket.disconnected) reset();
+  });
+
+  // Socket Client Custom Events
+  // client_create_room_event : resp.success, resp.message, resp.room_id
+  socket.on('client_create_room_event', (resp) => {
+    if (resp.success) {
+      // console.log(resp);
+      set(() => ({ room: resp.data.room }));
+    } else {
+      throw new Error(resp.message);
+    }
+  });
+
+  // client_join_room_event : resp.success, resp.message, resp.room
+  socket.on('client_join_room_event', (resp) => {
+    if (resp.success) {
+      set(() => ({
+        room: resp.room,
+        status: ConnectionStatus.IN_LOBBY,
+      }));
+    } else {
+      // console.error(resp.message);
+      throw new Error(resp.message);
+    }
+  });
+
+  // Socket Global Custom Events
+  socket.on('join_room_event', (resp) => {
+    if (resp.success) {
+      set(() => ({ room: resp.data.room }));
+    }
+  });
+
+  socket.on('leave_room_event', (resp) => {
+    if (resp.success) {
+      set(() => ({ room: resp.data.room }));
+    }
+  });
 
   return {
-    roomId: '',
-    userId: '',
+    status: ConnectionStatus.DISCONNECTED,
+    room: {
+      room_id: '',
+      number_of_user: 0,
+      max_capacity: 0,
+      last_activity: '',
+      questions: [],
+      host_id: '',
+      status: '',
+      room_location: '',
+      room_activity: '',
+      users: [],
+    },
+    user: {
+      user_id: '',
+      user_name: '',
+    },
     actions: {
-      createRoom: () => {
+      createRoom() {
+        checkConnection();
         socket.emit('create_room', {});
       },
-      joinRoom: (roomId: string, username: string) => {
-        socket.emit('join_room', { room_id: roomId, user_name: username });
+      joinRoom(roomId: string, userName: string) {
+        checkConnection();
+        // if (get().room.room_id) throw new Error('You are already in a room');
+        if (!roomId) throw new Error('Room ID is not provided when joining a room');
+        if (!userName) throw new Error('Username is not provided when joining a room');
+
+        socket.emit('join_room', { room_id: roomId, user_name: userName });
+        set(() => ({ user: { user_id: socket.id, user_name: userName } }));
       },
     },
   };

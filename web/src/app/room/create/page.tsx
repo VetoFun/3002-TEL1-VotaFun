@@ -1,21 +1,18 @@
 'use client';
 
-import { Loader } from '@/components/common/Loader';
 import { useEffect } from 'react';
 import { redirect } from 'next/navigation';
 import useGameStore from '@/stores/useGameStore';
 
 export default function CreateRoomPage() {
   const actions = useGameStore((state) => state.actions);
-  const roomId = useGameStore((state) => state.roomId);
+  const room = useGameStore((state) => state.room);
 
-  actions.createRoom(); // implement
+  actions.createRoom();
 
   useEffect(() => {
-    // actions.createRoom();
-    // if (roomId) redirect(`/room/join/${roomId}`);
-    redirect(`/room/join/test`);
-  }, [actions, roomId]);
+    if (room.room_id) redirect(`/room/join/${room.room_id}`);
+  }, [room]);
 
   return (
     <main className="h-screen w-screen bg-base-100">

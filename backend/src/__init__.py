@@ -4,9 +4,7 @@ from flask_socketio import SocketIO
 from flask_cors import CORS
 
 from src.database.Database import Database
-from src.routes.Room import room_blueprint
-from src.routes.User import user_blueprint
-from src.routes.Chatgpt import chatgpt_blueprint
+from src.utils.LLM import LLM
 
 socketio = SocketIO(cors_allowed_origins="*")
 
@@ -23,12 +21,10 @@ def create_app():
         redis_host=app.config["REDIS_HOST"],
         redis_port=app.config["REDIS_PORT"],
     )
+    llm = LLM()
 
+    app.llm = llm
     app.database = database
-
-    app.register_blueprint(room_blueprint)
-    app.register_blueprint(user_blueprint)
-    app.register_blueprint(chatgpt_blueprint)
 
     from src.sockets.room_management import RoomManagement
 

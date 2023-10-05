@@ -76,6 +76,13 @@ class Room:
             and self.users == other.users
         )
 
+    @property
+    def host_name(self):
+        for user in self.users:
+            if user.user_id == self.host_id:
+                return user.user_name
+        return ""
+
     def get_question_from_id(self, question_id: str) -> Question:
         for question in self.questions:
             if question.question_id == question_id:
@@ -109,11 +116,25 @@ class Room:
     def get_max_capacity(self):
         return self.max_capacity
 
+    def get_room_location(self):
+        return self.room_location
+
+    def get_room_activity(self):
+        return self.room_activity
+
+    def get_questions(self):
+        return [question.to_dict() for question in self.questions]
+
     def set_host(self, new_host_id):
         self.host_id = new_host_id
 
-    def start_room(self):
+    def set_last_activity(self):
+        self.last_activity = datetime.strftime(datetime.now(), "%Y-%m-%d %H:%M:%S")
+
+    def start_room(self, room_location, room_activity):
         self.status = RoomStatus.STARTED
+        self.room_activity = room_activity
+        self.room_location = room_location
 
     def is_room_still_active(self, time: datetime) -> bool:
         last_activity = datetime.strptime(self.last_activity, "%Y-%m-%d %H:%M:%S")
@@ -177,3 +198,10 @@ class Room:
             questions=questions,
             users=users,
         )
+
+    def get_final_result(self):
+        """Return True, result if all questions have been answered, else return False, None"""
+        for question in self.questions:
+            if question.last_question:
+                return True, question.get_most_voted_option()
+        return False, None

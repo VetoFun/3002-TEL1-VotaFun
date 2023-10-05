@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { redirect, useParams } from 'next/navigation';
 import useGameStore from '@/stores/useGameStore';
+import { ConnectionStatus } from '@/types/Connection';
 
 const UserNameInput = () => {
   const params = useParams();
@@ -10,13 +11,13 @@ const UserNameInput = () => {
   const [username, setUsername] = useState('');
 
   const actions = useGameStore((state) => state.actions);
-  const userId = useGameStore((state) => state.userId);
+  const [status] = useGameStore((state) => [state.status]);
 
   useEffect(() => {
-    if (username && userId) {
+    if (username && roomId && status == ConnectionStatus.IN_LOBBY) {
       redirect(`/room/lobby/${roomId}`);
     }
-  }, [username, roomId, userId]);
+  }, [username, roomId, status]);
 
   return (
     <div className="flex w-full gap-x-2">
