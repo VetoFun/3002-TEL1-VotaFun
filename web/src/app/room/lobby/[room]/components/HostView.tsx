@@ -8,14 +8,14 @@ const HostView = () => {
   const activities = ['Food', 'Games', 'Leisure'];
 
   const room = useGameStore((state) => state.room);
+  const actions = useGameStore((state) => state.actions);
   const [location, setLocation] = useState('');
   const [activity, setActivity] = useState('');
 
   useEffect(() => {
-    room.room_location = location;
-    room.room_activity = activity;
-    useGameStore.setState({ room: room });
-  }, [location, activity, room]);
+    actions.sendRoomProperties(room.room_id, location, activity);
+  }, [location, activity, actions, room.room_id]);
+
   return (
     <div className="flex flex-col gap-2">
       <Select label="Select Location" options={locations} onChange={(e) => setLocation(e.target.value)} />
