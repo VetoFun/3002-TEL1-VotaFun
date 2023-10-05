@@ -12,6 +12,7 @@ type GameStore = {
   actions: {
     createRoom: () => void;
     joinRoom: (roomId: string, username: string) => void;
+    kickUser: (roomId: string, userId: string, userName: string) => void;
   };
 };
 
@@ -76,7 +77,7 @@ export const useGameStore = create<GameStore>((set, get) => {
   socket.on('client_join_room_event', (resp) => {
     if (resp.success) {
       set(() => ({
-        room: resp.room,
+        room: resp.data.room,
         status: ConnectionStatus.IN_LOBBY,
       }));
     } else {
@@ -87,6 +88,12 @@ export const useGameStore = create<GameStore>((set, get) => {
 
   // Socket Global Custom Events
   socket.on('join_room_event', (resp) => {
+    if (resp.success) {
+      set(() => ({ room: resp.data.room }));
+    }
+  });
+
+  socket.on('kick_user_event', (resp) => {
     if (resp.success) {
       set(() => ({ room: resp.data.room }));
     }
@@ -129,6 +136,12 @@ export const useGameStore = create<GameStore>((set, get) => {
 
         socket.emit('join_room', { room_id: roomId, user_name: userName });
         set(() => ({ user: { user_id: socket.id, user_name: userName } }));
+      },
+      kickUser(roomId: string, userId: string, userName: string) {
+        if (!roomId) throw new Error('Room ID is not provided when kicking user');
+        if (!userId) throw new Error('UserId is not provided when kicking user');
+        if (!userName) throw new Error('Username is not provided when kicking user');
+        socket.emit('kick_user', { room_id: roomId, user_id: userId, user_name: userName });
       },
     },
   };
