@@ -7,7 +7,7 @@ function getInitials(username: string) {
 }
 
 const RoomParticipants = () => {
-  const [room] = useGameStore((state) => [state.room]);
+  const [currUser, room] = useGameStore((state) => [state.user, state.room]);
 
   return (
     <aside className="flex h-screen w-80 flex-col bg-neutral py-6 text-base-100">
@@ -17,9 +17,11 @@ const RoomParticipants = () => {
           return (
             <Participant
               key={user.user_id}
+              userId={user.user_id}
               initial={getInitials(user.user_name)}
               name={user.user_name}
               host={user.user_id == room.host_id}
+              isCurrUserHost={currUser.user_id == room.host_id}
             />
           );
         })}
