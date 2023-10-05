@@ -113,15 +113,46 @@ class RoomManagement(Namespace):
             to=request.sid,
         )
 
+    def on_check_room_exist(self, data):
+        room_id = data["room_id"]
+        message = Message()
+        event_name = "client_check_room_exist_event"
+
+        is_room_exist = app.database.is_room_exist(room_id=room_id)
+        if is_room_exist:
+            message.success = True
+            message.message = f"Room {room_id} exists."
+        else:
+            message.success = False
+            message.message = f"Room {room_id} does not exist."
+
+        emit(
+            event_name,
+            asdict(message),
+            to=request.sid,
+        )
+
     def on_join_room(self, data):
         room_id = data["room_id"]
         user_name = data["user_name"]
         user_id = request.sid
 
         message = Message()
-        event_name = "join_room_event"
+        event_name = "client_join_room_event"
 
         try:
+            # Check if room exists
+            curr_room_id = app.database.query_room_id_from_user_id(user_id=user_id)
+            if curr_room_id is not None:
+                message.success = False
+                message.message = f"User {user_id} is already in room {curr_room_id}."
+                emit(
+                    event_name,
+                    asdict(message),
+                    to=request.sid,
+                )
+                return
+
             # Add user to database
             room = app.database.add_user(
                 room_id=room_id, user_id=user_id, username=user_name
@@ -133,7 +164,7 @@ class RoomManagement(Namespace):
             message.message = f"{user_name} has joined room {room_id}."
             message.data = {"room": room.to_dict()}
             emit(
-                "client_join_room_event",
+                event_name,
                 asdict(message),
                 to=request.sid,
             )
@@ -146,7 +177,7 @@ class RoomManagement(Namespace):
             message.message = f"{user_name} failed to join room {room_id} due to {e}."
 
             emit(
-                "client_join_room_event",
+                event_name,
                 asdict(message),
                 to=request.sid,
             )

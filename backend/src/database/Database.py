@@ -128,7 +128,7 @@ class Database:
             for user in room.users:
                 if user.user_id == user_id:
                     return room.room_id
-        raise KeyError(f"User {user_id} does not exist in any room")
+        return None
 
     @redis_pipeline
     def create_room(self, pipeline: redis.Redis.pipeline) -> Room:
@@ -202,3 +202,6 @@ class Database:
     def get_room_final_result(self, room_id: str) -> Tuple[bool, str]:
         room = self._query_room_data(room_id=room_id)
         return room.get_final_result()
+
+    def is_room_exist(self, room_id: str) -> bool:
+        return self.r.exists(room_id)
