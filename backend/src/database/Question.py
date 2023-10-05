@@ -60,6 +60,7 @@ class Question:
             "question_id": self.question_id,
             "question_text": self.question_text,
             "options": [option.to_dict() for option in self.options],
+            'last_question': self.last_question,
         }
 
     @classmethod
@@ -77,8 +78,9 @@ class Question:
         question_text = data.get("question_text", "")
         options_data = data.get("options", [])
         options = [Option.from_dict(option_data) for option_data in options_data]
+        last_question = data.get("last_question", False)
         return cls(
-            question_id=question_id, question_text=question_text, options=options
+            question_id=question_id, question_text=question_text, options=options, last_question=last_question
         )
 
     def get_most_voted_option(self) -> Option:

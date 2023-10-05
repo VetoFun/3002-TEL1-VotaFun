@@ -427,13 +427,15 @@ class RoomManagement(Namespace):
                 )
             else:
                 message = Message()
+                logger.debug("Ending voting session")
                 reached_last_question, room_result = app.database.get_room_final_result(
                     room_id=room_id
                 )
+                logger.debug(room_result.to_dict())
                 if reached_last_question:
                     message.success = True
                     message.message = f"Voting session ended for {room_id}. Room result is {room_result.option_text}."
-                    message.data = {"room_result": room_result.todict()}
+                    message.data = {"room_result": room_result.to_dict()}
                 else:
                     message.success = False
                     message.message = f"Unable to get room result for {room_id}. Room has not reached last question."
