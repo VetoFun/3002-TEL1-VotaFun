@@ -103,7 +103,7 @@ class RoomManagement(Namespace):
             message.data = {"room": room.to_dict()}
 
         except Exception as e:
-            logger.error(f"create_room: {print(traceback.format_exc())}")
+            logger.error(f"create_room: {traceback.format_exc()}")
             message.success = False
             message.message = f"failed to create room due to {e}."
 
