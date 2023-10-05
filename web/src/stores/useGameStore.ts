@@ -12,6 +12,7 @@ type GameStore = {
   actions: {
     createRoom: () => void;
     joinRoom: (roomId: string, username: string) => void;
+    sendRoomProperties: (roomId: string, location: string, activity: string) => void;
   };
 };
 
@@ -76,7 +77,7 @@ export const useGameStore = create<GameStore>((set, get) => {
   socket.on('client_join_room_event', (resp) => {
     if (resp.success) {
       set(() => ({
-        room: resp.room,
+        room: resp.data.room,
         status: ConnectionStatus.IN_LOBBY,
       }));
     } else {
@@ -93,6 +94,12 @@ export const useGameStore = create<GameStore>((set, get) => {
   });
 
   socket.on('leave_room_event', (resp) => {
+    if (resp.success) {
+      set(() => ({ room: resp.data.room }));
+    }
+  });
+
+  socket.on('set_room_properties_event', (resp) => {
     if (resp.success) {
       set(() => ({ room: resp.data.room }));
     }
@@ -129,6 +136,10 @@ export const useGameStore = create<GameStore>((set, get) => {
 
         socket.emit('join_room', { room_id: roomId, user_name: userName });
         set(() => ({ user: { user_id: socket.id, user_name: userName } }));
+      },
+      sendRoomProperties(roomId: string, location: string, activity: string) {
+        if (!roomId) throw new Error('Room ID is not provided when setting room properties');
+        socket.emit('set_room_properties', { room_id: roomId, room_activity: activity, room_location: location });
       },
     },
   };
