@@ -57,7 +57,8 @@ class LLM:
                 f"<option 2>) <number of votes for 2>\n"
                 f"<option 3>) <number of votes for 3>\n"
                 f"<option 4>) <number of votes for 4>\n"
-                f"Most importantly, do not repeat any questions and options.",
+                f"Most importantly, do not repeat any questions and options. Be concise when generating options, "
+                f"preferably within 15 words.",
             }
         ]
 
@@ -66,10 +67,10 @@ class LLM:
             f"\n5 questions have been asked. Based on the voting results, can you recommend us 4"
             f"{room_activity} activities in {room_location} Singapore. "
             f"Format the activities in this manner.\n"
-            f"Activity 1: {room_activity} activity, and general location\n"
-            f"Activity 2: {room_activity} activity, and general location\n"
-            f"Activity 3: {room_activity} activity, and general location\n"
-            f"Activity 4: {room_activity} activity, and general location\n"
+            f"Activity 1: {room_activity} activity (Location)\n"
+            f"Activity 2: {room_activity} activity (Location)\n"
+            f"Activity 3: {room_activity} activity (Location)\n"
+            f"Activity 4: {room_activity} activity (Location)\n"
             f"Remember the location must be in {room_location} Singapore, and the {room_activity} activity "
             f"recommended must be based off all the previous questions and voting results. Do not ask us "
             f"anymore questions. Give us the location of the place, or the name where the activity should "
