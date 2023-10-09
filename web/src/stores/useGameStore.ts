@@ -5,12 +5,14 @@ import { User } from '@/types/User';
 import { Room } from '@/types/Room';
 import { ConnectionStatus } from '@/types/Connection';
 import { Question } from '@/types/Question';
+import { Option } from '@/types/Option';
 
 type GameStore = {
   status: ConnectionStatus;
   room: Room;
   user: User;
   question: Question;
+  option: Option;
   actions: {
     createRoom: () => void;
     joinRoom: (roomId: string, username: string) => void;
@@ -47,13 +49,15 @@ export const useGameStore = create<GameStore>((set, get) => {
         user_id: '',
         user_name: '',
       },
+      question: { question_id: '', question_text: '', options: [], voted: false},
+      option: {option_id: '', option_text:'', option_count:0, current_votes:0},
     }));
   };
 
   // Socket Standard Events
-  socket.onAny((event, ...args) => {
-    console.debug(event, args);
-  });
+  // socket.onAny((event, ...args) => {
+  //   console.debug(event, args);
+  // });
 
   socket.on('connect', () => {
     if (get().status == ConnectionStatus.DISCONNECTED && socket.connected) {
@@ -133,6 +137,13 @@ export const useGameStore = create<GameStore>((set, get) => {
     }
   });
 
+  socket.on('end_room_event', (resp) => {
+    if(resp.success) {
+      // console.log('end room event');
+      set(() => ({ status: ConnectionStatus.POST_GAME, option: resp.data.room_result }));
+    }
+  });
+
   return {
     status: ConnectionStatus.DISCONNECTED,
     room: {
@@ -151,16 +162,8 @@ export const useGameStore = create<GameStore>((set, get) => {
       user_id: '',
       user_name: '',
     },
-    question: {
-      question_id: '',
-      question: '',
-      answer: '',
-      choices: [],
-      time_limit: 0,
-      question_type: '',
-      question_category: '',
-      question_difficulty: '',
-    },
+    question: { question_id: '', question_text: '', options: [], voted: false},
+    option: {option_id: '', option_text:'', option_count:0, current_votes:0},
     actions: {
       createRoom() {
         checkConnection();
@@ -180,11 +183,11 @@ export const useGameStore = create<GameStore>((set, get) => {
         const room_id = get().room.room_id;
         const location = get().room.room_location;
         const activity = get().room.room_activity;
-        console.log(room_id, location, activity);
+        // console.log(room_id, location, activity);
         socket.emit('start_room', { "room_id": room_id, "room_location": location, "room_activity": activity });
       },
       vote(option: string) {
-        console.log(option);
+        // console.log(option);
         checkConnection();
         const room_id = get().room.room_id;
         const user_name = get().user.user_name;

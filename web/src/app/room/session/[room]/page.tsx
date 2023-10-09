@@ -4,6 +4,7 @@ import { RoomLayout } from '@/components/layout/RoomLayout';
 import { LoadingLayout } from './components/dom/LoadingLayout';
 import { ConnectionStatus } from '@/types/Connection';
 import { VotingLayout } from './components/dom/VotingLayout';
+import { ResultLayout } from './components/dom/ResultLayout';
 import useGameStore from '@/stores/useGameStore';
 
 export default function RoomSessionPage() {
@@ -16,8 +17,10 @@ export default function RoomSessionPage() {
         return <LoadingLayout />;
       case ConnectionStatus.IN_GAME:
         return <VotingLayout />;
+      case ConnectionStatus.POST_GAME:
+        return <ResultLayout />;
       default:
-        return <LoadingLayout />;
+        throw new Error('An error has occured');
     }
   }
 

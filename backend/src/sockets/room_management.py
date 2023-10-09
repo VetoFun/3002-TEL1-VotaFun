@@ -436,6 +436,8 @@ class RoomManagement(Namespace):
                     message.success = True
                     message.message = f"Voting session ended for {room_id}. Room result is {room_result.option_text}."
                     message.data = {"room_result": room_result.to_dict()}
+                    emit("end_room_event", asdict(message), to=room_id)
+                    return
                 else:
                     message.success = False
                     message.message = f"Unable to get room result for {room_id}. Room has not reached last question."

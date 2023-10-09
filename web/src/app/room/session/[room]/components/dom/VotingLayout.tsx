@@ -7,9 +7,9 @@ import useGameStore from '@/stores/useGameStore';
 const VotingLayout = () => {
   const question = useGameStore((state) => state.question);
   const [progress, setProgress] = useState(100);
-  const [countdown, setCountdown] = useState(30);
+  const [countdown, setCountdown] = useState(15);
 
-  const initial_time = 30;
+  const initial_time = 15;
   
   setTimeout(() => {
     setCountdown(countdown - 0.1);
@@ -19,7 +19,7 @@ const VotingLayout = () => {
   useEffect(() => {
     const newProgress = (countdown / initial_time) * 100;
     setProgress(Math.round(newProgress));
-  }, [countdown]);
+  }, [countdown, initial_time]);
 
 
   const getVoteColor = (id: number) => {

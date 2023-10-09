@@ -7,7 +7,7 @@ class Config:
     REDIS_PORT = int(os.environ.get("REDIS_PORT", 6379))
     MAX_CAPACITY = 10
     WATCH_ERROR_RETRIES = 5
-    TIMER = 30
+    TIMER = 15
     BUFFER_TIMER = 1
 
 
