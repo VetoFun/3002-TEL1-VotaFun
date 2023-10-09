@@ -167,6 +167,10 @@ class LLM:
         if len(question_matches) > 0:
             options_list = []
             for i in range(len(option_matches)):
+                # extract only the first 4 options
+                if len(options_list) == 4:
+                    break
+
                 option = Option(option_id=str(i + 1), option_text=option_matches[i])
                 options_list.append(option)
 
