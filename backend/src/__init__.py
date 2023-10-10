@@ -26,7 +26,7 @@ def create_app():
     app.llm = llm
     app.database = database
 
-    from src.sockets.room_management import RoomManagement
+    from src.sockets.RoomManagement import RoomManagement
 
     socketio.on_namespace(RoomManagement("/room-management"))
     socketio.init_app(app)
