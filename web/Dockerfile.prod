@@ -1,4 +1,3 @@
-# syntax = docker/dockerfile:1.2
 # Use a Node.js base image suitable for your Next.js app
 FROM node:18-alpine AS base
 
