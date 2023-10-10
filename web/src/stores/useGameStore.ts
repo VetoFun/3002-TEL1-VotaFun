@@ -24,7 +24,9 @@ type GameStore = {
 };
 
 export const useGameStore = create<GameStore>((set, get) => {
-  const socket = io('http://localhost:5001/room-management');
+  const socketUrl =
+    process.env.NODE_ENV === 'production' ? process.env.SOCKET_URL! : 'http://localhost:5001/room-management';
+  const socket = io(socketUrl);
 
   const checkConnection = () => {
     // if (get().status == ConnectionStatus.DISCONNECTED) throw new Error('You are not connected');
@@ -51,8 +53,8 @@ export const useGameStore = create<GameStore>((set, get) => {
         user_id: '',
         user_name: '',
       },
-      question: { question_id: '', question_text: '', options: [], voted: false},
-      option: {option_id: '', option_text:'', option_count:0, current_votes:0},
+      question: { question_id: '', question_text: '', options: [], voted: false },
+      option: { option_id: '', option_text: '', option_count: 0, current_votes: 0 },
     }));
   };
 
@@ -97,7 +99,7 @@ export const useGameStore = create<GameStore>((set, get) => {
 
   socket.on('client_vote_option_event', (resp) => {
     if (resp.success) {
-      set((state) => ({ question: {...state.question, voted: true}}));
+      set((state) => ({ question: { ...state.question, voted: true } }));
     }
   });
 
@@ -140,7 +142,8 @@ export const useGameStore = create<GameStore>((set, get) => {
 
   socket.on('end_round_event', (resp) => {
     if (resp.success) {
-      set(() => ({ status: ConnectionStatus.IN_GAME_WAITING_FOR_SERVER, 
+      set(() => ({
+        status: ConnectionStatus.IN_GAME_WAITING_FOR_SERVER,
         question: {
           question_id: '',
           question_text: '',
@@ -152,7 +155,7 @@ export const useGameStore = create<GameStore>((set, get) => {
   });
 
   socket.on('end_room_event', (resp) => {
-    if(resp.success) {
+    if (resp.success) {
       // console.log('end room event');
       set(() => ({ status: ConnectionStatus.POST_GAME, option: resp.data.room_result }));
     }
@@ -176,8 +179,8 @@ export const useGameStore = create<GameStore>((set, get) => {
       user_id: '',
       user_name: '',
     },
-    question: { question_id: '', question_text: '', options: [], voted: false},
-    option: {option_id: '', option_text:'', option_count:0, current_votes:0},
+    question: { question_id: '', question_text: '', options: [], voted: false },
+    option: { option_id: '', option_text: '', option_count: 0, current_votes: 0 },
     actions: {
       createRoom() {
         checkConnection();
@@ -208,7 +211,7 @@ export const useGameStore = create<GameStore>((set, get) => {
         const location = get().room.room_location;
         const activity = get().room.room_activity;
         // console.log(room_id, location, activity);
-        socket.emit('start_room', { "room_id": room_id, "room_location": location, "room_activity": activity });
+        socket.emit('start_room', { room_id: room_id, room_location: location, room_activity: activity });
       },
       vote(option: string) {
         // console.log(option);
@@ -216,7 +219,12 @@ export const useGameStore = create<GameStore>((set, get) => {
         const room_id = get().room.room_id;
         const user_name = get().user.user_name;
         const question_id = get().question.question_id;
-        socket.emit('vote_option', { "room_id": room_id, "question_id": question_id, "user_name": user_name, "option_id": option });
+        socket.emit('vote_option', {
+          room_id: room_id,
+          question_id: question_id,
+          user_name: user_name,
+          option_id: option,
+        });
       },
     },
   };
