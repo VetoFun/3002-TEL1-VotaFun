@@ -6,8 +6,6 @@ import { Room } from '@/types/Room';
 import { ConnectionStatus } from '@/types/Connection';
 import { Question } from '@/types/Question';
 import { Option } from '@/types/Option';
-import dotenv from 'dotenv';
-dotenv.config();
 
 type GameStore = {
   status: ConnectionStatus;
@@ -26,7 +24,6 @@ type GameStore = {
 };
 
 export const useGameStore = create<GameStore>((set, get) => {
-  console.log(process.env.NODE_ENV, process.env.NEXT_PUBLIC_SOCKET_URL);
   const socketUrl =
     process.env.NODE_ENV === 'production'
       ? process.env.NEXT_PUBLIC_SOCKET_URL!
