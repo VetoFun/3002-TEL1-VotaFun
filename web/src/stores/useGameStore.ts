@@ -6,6 +6,8 @@ import { Room } from '@/types/Room';
 import { ConnectionStatus } from '@/types/Connection';
 import { Question } from '@/types/Question';
 import { Option } from '@/types/Option';
+import dotenv from 'dotenv';
+dotenv.config();
 
 type GameStore = {
   status: ConnectionStatus;
