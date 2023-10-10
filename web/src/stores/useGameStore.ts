@@ -25,7 +25,9 @@ type GameStore = {
 
 export const useGameStore = create<GameStore>((set, get) => {
   const socketUrl =
-    process.env.NODE_ENV === 'production' ? process.env.SOCKET_URL! : 'http://localhost:5001/room-management';
+    process.env.NODE_ENV === 'production'
+      ? process.env.NEXT_PUBLIC_SOCKET_URL!
+      : 'http://localhost:5001/room-management';
   const socket = io(socketUrl);
 
   const checkConnection = () => {

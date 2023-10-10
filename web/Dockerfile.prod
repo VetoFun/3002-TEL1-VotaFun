@@ -1,5 +1,8 @@
+# syntax = docker/dockerfile:1.2
 # Use a Node.js base image suitable for your Next.js app
 FROM node:18-alpine AS base
+
+ARG NEXT_PUBLIC_SOCKET_URL
 
 # Install dependencies only when needed
 FROM base AS deps
@@ -35,6 +38,7 @@ FROM base AS runner
 WORKDIR /app
 
 ENV NODE_ENV production
+ENV NEXT_PUBLIC_SOCKET_URL $NEXT_PUBLIC_SOCKET_URL
 # Uncomment the following line in case you want to disable telemetry during runtime.
 # ENV NEXT_TELEMETRY_DISABLED 1
 
