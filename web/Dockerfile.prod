@@ -10,7 +10,6 @@ WORKDIR /app
 
 # Copy the package.json and pnpm-lock.yaml files to the container
 COPY package.json pnpm-lock.yaml ./
-ARG SOCKET_URL
 
 # Install pnpm globally
 RUN yarn global add pnpm
@@ -37,7 +36,7 @@ FROM base AS runner
 WORKDIR /app
 
 ENV NODE_ENV production
-ENV SOCKET_URL ${SOCKET_URL}
+ENV SOCKET_URL https://votafun-e8959ba3f9bb.herokuapp.com/room-management
 # Uncomment the following line in case you want to disable telemetry during runtime.
 # ENV NEXT_TELEMETRY_DISABLED 1
 
