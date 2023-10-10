@@ -1,3 +1,4 @@
+# syntax = docker/dockerfile:1.2
 # Use a Node.js base image suitable for your Next.js app
 FROM node:18-alpine AS base
 
@@ -9,14 +10,13 @@ WORKDIR /app
 
 # Copy the package.json and pnpm-lock.yaml files to the container
 COPY package.json pnpm-lock.yaml ./
+COPY /etc/secrets/.env ./.env
 
 # Install pnpm globally
 RUN yarn global add pnpm
 
 # Install project dependencies using pnpm
 RUN pnpm install --frozen-lockfile
-
-COPY --from=deps /etc/secrets/.env ./.env
 
 # Rebuild the source code only when needed
 FROM base AS builder
