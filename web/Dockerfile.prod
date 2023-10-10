@@ -10,7 +10,7 @@ WORKDIR /app
 
 # Copy the package.json and pnpm-lock.yaml files to the container
 COPY package.json pnpm-lock.yaml ./
-RUN --mount=type=secret,id=_env,dst=/etc/secrets/.env cp /etc/secrets/.env ./.env
+ARG SOCKET_URL
 
 # Install pnpm globally
 RUN yarn global add pnpm
@@ -37,6 +37,7 @@ FROM base AS runner
 WORKDIR /app
 
 ENV NODE_ENV production
+ENV SOCKET_URL ${SOCKET_URL}
 # Uncomment the following line in case you want to disable telemetry during runtime.
 # ENV NEXT_TELEMETRY_DISABLED 1
 
