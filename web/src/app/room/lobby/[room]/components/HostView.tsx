@@ -1,5 +1,4 @@
 import { Select } from './Select';
-import Link from 'next/link';
 import useGameStore from '@/stores/useGameStore';
 import { useEffect, useState } from 'react';
 
@@ -7,8 +6,7 @@ const HostView = () => {
   const locations = ['Central', 'East', 'North', 'North-East', 'West'];
   const activities = ['Food', 'Games', 'Leisure'];
 
-  const room = useGameStore((state) => state.room);
-  const actions = useGameStore((state) => state.actions);
+  const [room, actions] = useGameStore((state) =>[ state.room, state.actions]);
   const [location, setLocation] = useState('');
   const [activity, setActivity] = useState('');
 
@@ -20,9 +18,9 @@ const HostView = () => {
     <div className="flex flex-col gap-2">
       <Select label="Select Location" options={locations} onChange={(e) => setLocation(e.target.value)} />
       <Select label="Select Activity" options={activities} onChange={(e) => setActivity(e.target.value)} />
-      <Link className="btn btn-secondary text-lg" href={`/room/session/${room.room_id}`}>
+      <button type="button" className="btn btn-secondary text-lg" onClick={actions.startRoom}>
         Start Room
-      </Link>
+      </button>
     </div>
   );
 };

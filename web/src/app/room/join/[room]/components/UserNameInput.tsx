@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { redirect, useParams } from 'next/navigation';
+import { RedirectType, redirect, useParams } from 'next/navigation';
 import useGameStore from '@/stores/useGameStore';
 import { ConnectionStatus } from '@/types/Connection';
 
@@ -15,7 +15,7 @@ const UserNameInput = () => {
 
   useEffect(() => {
     if (username && roomId && status == ConnectionStatus.IN_LOBBY) {
-      redirect(`/room/lobby/${roomId}`);
+      redirect(`/room/lobby/${roomId}`, RedirectType.replace);
     }
   }, [username, roomId, status]);
 

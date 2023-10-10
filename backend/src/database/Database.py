@@ -160,9 +160,6 @@ class Database:
             raise ValueError(
                 f"User {requesting_user_id} is not the host of room {room_id} has already started"
             )
-        # check if the properties has been set
-        if room.room_location != "" and room.room_activity != "":
-            raise KeyError(f"Room {room_id} has already set its activity and location")
         room.start_room(room_location=room_location, room_activity=room_activity)
         self.store_room_data(room_id=room_id, room_data=room, pipeline=pipeline)
         return room

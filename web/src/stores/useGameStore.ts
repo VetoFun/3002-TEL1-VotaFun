@@ -4,16 +4,22 @@ import { io } from 'socket.io-client';
 import { User } from '@/types/User';
 import { Room } from '@/types/Room';
 import { ConnectionStatus } from '@/types/Connection';
+import { Question } from '@/types/Question';
+import { Option } from '@/types/Option';
 
 type GameStore = {
   status: ConnectionStatus;
   room: Room;
   user: User;
+  question: Question;
+  option: Option;
   actions: {
     createRoom: () => void;
     joinRoom: (roomId: string, username: string) => void;
     kickUser: (roomId: string, userId: string, userName: string) => void;
     sendRoomProperties: (roomId: string, location: string, activity: string) => void;
+    startRoom: () => void;
+    vote: (option: string) => void;
   };
 };
 
@@ -45,6 +51,8 @@ export const useGameStore = create<GameStore>((set, get) => {
         user_id: '',
         user_name: '',
       },
+      question: { question_id: '', question_text: '', options: [], voted: false},
+      option: {option_id: '', option_text:'', option_count:0, current_votes:0},
     }));
   };
 
@@ -87,6 +95,12 @@ export const useGameStore = create<GameStore>((set, get) => {
     }
   });
 
+  socket.on('client_vote_option_event', (resp) => {
+    if (resp.success) {
+      set((state) => ({ question: {...state.question, voted: true}}));
+    }
+  });
+
   // Socket Global Custom Events
   socket.on('join_room_event', (resp) => {
     if (resp.success) {
@@ -112,6 +126,38 @@ export const useGameStore = create<GameStore>((set, get) => {
     }
   });
 
+  socket.on('start_room_event', (resp) => {
+    if (resp.success) {
+      set(() => ({ status: ConnectionStatus.IN_GAME_WAITING_FOR_SERVER, room: resp.data.room }));
+    }
+  });
+
+  socket.on('start_round_event', (resp) => {
+    if (resp.success) {
+      set(() => ({ status: ConnectionStatus.IN_GAME, question: resp.data }));
+    }
+  });
+
+  socket.on('end_round_event', (resp) => {
+    if (resp.success) {
+      set(() => ({ status: ConnectionStatus.IN_GAME_WAITING_FOR_SERVER, 
+        question: {
+          question_id: '',
+          question_text: '',
+          options: [],
+          voted: false,
+        },
+      }));
+    }
+  });
+
+  socket.on('end_room_event', (resp) => {
+    if(resp.success) {
+      // console.log('end room event');
+      set(() => ({ status: ConnectionStatus.POST_GAME, option: resp.data.room_result }));
+    }
+  });
+
   return {
     status: ConnectionStatus.DISCONNECTED,
     room: {
@@ -130,6 +176,8 @@ export const useGameStore = create<GameStore>((set, get) => {
       user_id: '',
       user_name: '',
     },
+    question: { question_id: '', question_text: '', options: [], voted: false},
+    option: {option_id: '', option_text:'', option_count:0, current_votes:0},
     actions: {
       createRoom() {
         checkConnection();
@@ -153,6 +201,22 @@ export const useGameStore = create<GameStore>((set, get) => {
       sendRoomProperties(roomId: string, location: string, activity: string) {
         if (!roomId) throw new Error('Room ID is not provided when setting room properties');
         socket.emit('set_room_properties', { room_id: roomId, room_activity: activity, room_location: location });
+      },
+      startRoom() {
+        checkConnection();
+        const room_id = get().room.room_id;
+        const location = get().room.room_location;
+        const activity = get().room.room_activity;
+        // console.log(room_id, location, activity);
+        socket.emit('start_room', { "room_id": room_id, "room_location": location, "room_activity": activity });
+      },
+      vote(option: string) {
+        // console.log(option);
+        checkConnection();
+        const room_id = get().room.room_id;
+        const user_name = get().user.user_name;
+        const question_id = get().question.question_id;
+        socket.emit('vote_option', { "room_id": room_id, "question_id": question_id, "user_name": user_name, "option_id": option });
       },
     },
   };

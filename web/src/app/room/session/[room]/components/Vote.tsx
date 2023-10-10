@@ -1,12 +1,18 @@
+import useGameStore from "@/stores/useGameStore";
+
 interface VoteButtonProps {
   id: string;
   text: string;
   color: string;
+  disabled: boolean;
 }
 
-function Vote({ id, text, color }: VoteButtonProps) {
+function Vote({ id, text, color, disabled }: VoteButtonProps) {
+
+  const actions = useGameStore((state) => state.actions);
+
   return (
-    <button className={`btn ${color} h-24 max-w-md py-8 text-lg`} value={id}>
+    <button type='button' className={`btn ${color} h-24 max-w-md py-8 text-lg`} value={id} onClick={() => actions.vote(id)} disabled={disabled}>
       {text}
     </button>
   );

@@ -10,7 +10,7 @@ logger.setLevel(logging.DEBUG)
 console_handler = logging.StreamHandler()
 
 # Define the logging format
-formatter = logging.Formatter("%(asctime)s [%(levelname)s] - %(name)s: %(message)s")
+formatter = logging.Formatter('[%(asctime)s] p%(process)s {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s','%m-%d %H:%M:%S')
 console_handler.setFormatter(formatter)
 
 logger.addHandler(console_handler)  # Optional for logging to the console
