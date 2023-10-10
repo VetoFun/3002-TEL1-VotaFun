@@ -14,7 +14,7 @@ class User:
     def __init__(self, user_id: str, user_name: str, is_host: bool = False):
         self.user_id = user_id
         self.user_name = user_name
-        self.is_host = False
+        self.is_host = is_host
 
     def __eq__(self, other):
         if not isinstance(other, User):
@@ -25,7 +25,11 @@ class User:
         return 1
 
     def to_dict(self) -> Dict[str, str]:
-        return {"user_id": self.user_id, "user_name": self.user_name, "is_host": self.is_host}
+        return {
+            "user_id": self.user_id,
+            "user_name": self.user_name,
+            "is_host": self.is_host,
+        }
 
     @classmethod
     def from_dict(cls, data: dict):
