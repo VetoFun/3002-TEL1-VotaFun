@@ -17,4 +17,4 @@ COPY src/ ./src/
 EXPOSE 5000
 
 # Start the Flask app from the src directory
-CMD ["sh", "-c", "cd src && flask run --debug --host=0.0.0.0"]
+CMD ["sh", "-c", "cd src && flask run --debug --host=0.0.0.0 --port=5001"]
