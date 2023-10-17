@@ -30,6 +30,8 @@ class LLM:
             "4) <option 4>\n"
         )
 
+        self.additional_prompt = []
+
     def get_reply(self, room_id, database):
         # get room properties
         room = database._query_room_data(room_id)
@@ -44,20 +46,22 @@ class LLM:
                 "role": "system",
                 "content": f"We are a group of friends planning a {room_activity} activity in {room_location} Singapore"
                 f" and we need your help. Can you give us 5 questions one at a time, along with 4 options to vote for. "
-                f"Questions and votes must be generated based on the previous response except for the first question."
+                f"Questions and votes must be generated based on the previous response except for the first question. "
+                f"Ask questions that will be useful in reaching a conclusion to what {room_activity} activity and "
+                f"where in {room_location} Singapore will the activity be."
                 f"Format the questions in this manner: \n"
                 f"Question <x>: <question>\n"
                 f"1) <option 1>\n"
                 f"2) <option 2>\n"
                 f"3) <option 3>\n"
                 f"4) <option 4>\n"
-                f"We will tell you the result of our votes in this format: \n"
-                f"<option 1>) <number of votes for 1>\n"
-                f"<option 2>) <number of votes for 2>\n"
-                f"<option 3>) <number of votes for 3>\n"
-                f"<option 4>) <number of votes for 4>\n"
-                f"Most importantly, do not repeat any questions and options. Be concise when generating options, "
-                f"preferably within 10 words.",
+                # f"We will tell you the result of our votes in this format: \n"
+                # f"<option 1>) <number of votes for 1>\n"
+                # f"<option 2>) <number of votes for 2>\n"
+                # f"<option 3>) <number of votes for 3>\n"
+                # f"<option 4>) <number of votes for 4>\n"
+                f"Most importantly, generate unique questions and options. Be concise when generating options, "
+                f"preferably within 7 words.",
             }
         ]
 
@@ -73,8 +77,16 @@ class LLM:
             f"Remember the location must be in {room_location} Singapore, and the {room_activity} activity "
             f"recommended must be based off all the previous questions and voting results. Do not ask us "
             f"anymore questions. Give us the location of the place, or the name where the activity should "
-            f"be at."
+            f"be at. Be concise when generating activities giving the activity within 7 words."
         )
+
+        self.additional_prompt = [
+            "Ask a 'what' type of question.",
+            "Ask a 'when' type of question.",
+            "Ask a 'where' type of question.",
+            "Ask a 'how' type of question.",
+            "Ask a 'how' type of question.",
+        ]
 
         # getting the past questions asked by chatGPT and their votes
         past_questions = room.get_questions()
@@ -125,7 +137,7 @@ class LLM:
 
                 question_options = past_questions[i]["options"]
 
-                content = ""
+                content = "Here are the results of our voting. "
                 for option in question_options:
                     content += f"{option['option_text']}: {option['votes']}\n"
 
@@ -141,7 +153,13 @@ class LLM:
                 message[-1]["content"] += final_prompt
             else:
                 # adding the re prompt to ensure that llm almost always gives us what is expected.
-                message[-1]["content"] += self.re_prompt
+                message[-1]["content"] += (
+                    self.re_prompt + self.additional_prompt[len(past_questions)]
+                )
+        else:
+            message.append(
+                {"role": "user", "content": self.additional_prompt[len(past_questions)]}
+            )
         logger.info(message)
         return message
 
