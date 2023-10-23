@@ -9,7 +9,7 @@ const Loader = () => {
     // </div>
     <div>
       <motion.div
-        className="my-16 flex h-16 w-48 items-center justify-center rounded-lg bg-neutral text-center font-bold text-base-100"
+        className="my-16 flex h-16 w-48 items-center justify-center rounded-lg bg-neutral text-center text-lg font-bold text-base-100"
         animate={{
           // jitter
           x: [-2, 3, -4, 2, -1, 0, -2, 3, -4, 2, -1, -2],

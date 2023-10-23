@@ -41,7 +41,7 @@ const VotingLayout = () => {
   return (
     <div className="flex flex-col items-center justify-center gap-4">
       <Prompt text={question.question_text} />
-      <div className="my-4 w-full">
+      <div className="my-4 w-2/3">
         <progress className="progress progress-warning h-4 w-full" value={progress} max="100"></progress>
         <motion.div
           className="text-md relative -inset-1/2 -inset-y-[calc(50%+4px)] flex h-12 w-12 items-center justify-center rounded-full bg-warning px-8 text-center font-extrabold text-base-100"

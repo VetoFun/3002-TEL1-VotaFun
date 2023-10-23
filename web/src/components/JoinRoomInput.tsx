@@ -17,7 +17,7 @@ const JoinRoomInput = () => {
         value={roomCode}
       />
       <Link
-        className={`btn btn-accent h-fit flex-none py-4 text-lg hover:scale-105 ${
+        className={`btn btn-accent h-fit flex-none py-3 px-6 text-lg hover:scale-105 ${
           roomCode.length == 0 ? 'btn-disabled' : ''
         }`}
         data-tip="Room code cannot be empty"
