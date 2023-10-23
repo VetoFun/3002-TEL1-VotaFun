@@ -10,7 +10,7 @@ const VotingLayout = () => {
   const [countdown, setCountdown] = useState(15);
 
   const initial_time = 15;
-  
+
   setTimeout(() => {
     setCountdown(countdown - 0.1);
     if (countdown <= 0) clearTimeout(this);
@@ -21,23 +21,22 @@ const VotingLayout = () => {
     setProgress(Math.round(newProgress));
   }, [countdown, initial_time]);
 
-
   const getVoteColor = (id: number) => {
     const selection = id % 4;
 
-    switch(selection) {
-        case 0:
-            return "btn-primary";
-        case 1:
-            return "btn-info";
-        case 2:
-            return "btn-success";
-        case 3:
-            return "btn-warning";
+    switch (selection) {
+      case 0:
+        return 'btn-primary';
+      case 1:
+        return 'btn-info';
+      case 2:
+        return 'btn-success';
+      case 3:
+        return 'btn-warning';
     }
 
-    return "btn-primary";
-}
+    return 'btn-primary';
+  };
   return (
     <div className="flex flex-col items-center justify-center gap-4">
       <Prompt text={question.question_text} />
@@ -53,15 +52,15 @@ const VotingLayout = () => {
         </motion.div>
       </div>
       <div className="relative -inset-y-12 mx-auto grid w-2/3 grid-cols-2 grid-rows-2 gap-3">
-        {question.options.map((option, index) =>
-            <Vote
-                key={index}
-                id={option.option_id}
-                color={getVoteColor(index)}
-                text={option.option_text}
-                disabled={progress <= 0 || question.voted}
-                />
-        )}
+        {question.options.map((option, index) => (
+          <Vote
+            key={index}
+            id={option.option_id}
+            color={getVoteColor(index)}
+            text={option.option_text}
+            disabled={progress <= 0 || question.voted}
+          />
+        ))}
       </div>
     </div>
   );

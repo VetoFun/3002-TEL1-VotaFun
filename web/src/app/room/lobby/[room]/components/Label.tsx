@@ -1,6 +1,6 @@
 'use client';
 
-import { LoadingDots } from "@/components/common/LoadingDots";
+import { LoadingDots } from '@/components/common/LoadingDots';
 
 interface LabelProps {
   label: string;

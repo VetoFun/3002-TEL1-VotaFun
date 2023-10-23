@@ -22,7 +22,7 @@ function Participant({ userId, name, host, isCurrUserHost }: ParticipantProps) {
       <div className="flex flex-1 justify-between">
         <p className="my-auto group-hover:text-neutral-content">{name}</p>
         {isCurrUserHost && !host && (
-          <div className="tooltip tooltip-error tooltip-left flex flex-col justify-center" data-tip="Kick User">
+          <div className="tooltip tooltip-left tooltip-error flex flex-col justify-center" data-tip="Kick User">
             <button
               className="btn btn-circle btn-error btn-xs"
               onClick={() => actions.kickUser(room.room_id, userId, name)}

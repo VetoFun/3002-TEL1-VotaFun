@@ -1,4 +1,4 @@
-import { LoadingPrompt } from "../LoadingPrompt";
+import { LoadingPrompt } from '../LoadingPrompt';
 
 const LoadingLayout = () => {
   return (

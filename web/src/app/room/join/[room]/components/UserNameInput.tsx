@@ -31,7 +31,7 @@ const UserNameInput = () => {
         required={true}
       />
       <button
-        className={`btn btn-neutral h-fit flex-none py-2 text-md ${username.length == 0 ? 'btn-disabled' : ''}`}
+        className={`text-md btn btn-neutral h-fit flex-none py-2 ${username.length == 0 ? 'btn-disabled' : ''}`}
         data-tip="Room code cannot be empty"
         data-for="room-code-empty"
         onClick={() => actions.joinRoom(roomId, username)}

@@ -35,7 +35,7 @@ export default function RoomLobbyPage() {
         <p className="mb-6 text-center text-xl font-semibold">
           <span className="uppercase">Room ID:</span>{' '}
           <code
-            className="tooltip ml-2 rounded-md bg-accent p-3 px-4 hover:cursor-pointer hover:scale-105 transition-transform"
+            className="tooltip ml-2 rounded-md bg-accent p-3 px-4 transition-transform hover:scale-105 hover:cursor-pointer"
             data-tip="Copy to Clipboard"
             onClick={copyToClipboard}
           >

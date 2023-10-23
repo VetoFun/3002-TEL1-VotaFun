@@ -6,7 +6,7 @@ const HostView = () => {
   const locations = ['Central', 'East', 'North', 'North-East', 'West'];
   const activities = ['Food', 'Games', 'Leisure'];
 
-  const [room, actions] = useGameStore((state) =>[ state.room, state.actions]);
+  const [room, actions] = useGameStore((state) => [state.room, state.actions]);
   const [location, setLocation] = useState('');
   const [activity, setActivity] = useState('');
 
