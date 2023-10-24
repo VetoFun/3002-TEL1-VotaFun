@@ -18,6 +18,8 @@ class Database:
         if not redis_url:
             # redis_url = f"redis://redis:{redis_port}"
             redis_url = f"redis://@{redis_host}:{redis_port}"
+            # redis_url = f"redis://redis:{redis_port}"
+            redis_url = f"redis://@{redis_host}:{redis_port}"
         self.r = redis.from_url(redis_url)
 
     def _query_room_data(self, room_id: str, return_dict=False) -> Union[Room, Dict]:
@@ -195,7 +197,10 @@ class Database:
             raise ValueError("Only the host can set room properties")
         room.room_activity = room_activity
         room.room_location = room_location
-        room.max_capacity = room_capacity
+
+        if room_capacity >= room.number_of_user:
+            room.max_capacity = room_capacity
+
         self.store_room_data(room_id=room_id, room_data=room, pipeline=pipeline)
         return room
 
