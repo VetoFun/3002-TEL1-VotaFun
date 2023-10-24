@@ -54,10 +54,11 @@ class LLM:
                      'should ask for them (ie. Halal, Vegan).' if room_activity == 'Food' else ''}"""
                 f"""{'Do ask for cuisines from countries located within East Asia and Western Countries or even here '
                      'in Singapore. ' if room_activity == 'Food' else ''}"""
-                f"""{'Do ask what type of Games we would like to play (ie Board games, card '
-                     'games).' if room_activity == 'Games' else ''}"""
+                f"""{'Do ask what type of activity we would like to play.' if room_activity == 'Fun' else ''}"""
                 f"""{'Avoid giving an option for virtual activity, the location must be physical'
-                     '.' if room_activity == 'Games' else ''}"""
+                     '.' if room_activity == 'Fun' else ''}"""
+                f"""{'Do give a specific address if we are voting for a location.'
+                     '.' if room_activity == 'Fun' else ''}"""
                 f"""{'Do ask what type of leisure activity we would like to '
                      'do.' if room_activity == 'Leisure' else ''}"""
                 f"Please avoid providing repetitive or similar questions."
@@ -76,8 +77,8 @@ class LLM:
             f"\nWe have provided our preferences for the kind of activity we would like to pursue."
             f"Based on the voting results, can you recommend us 4 "
             f"locations in {room_location} Singapore that we can enjoy our {room_activity} activities in? "
-            f"""{f'Do give specific types of {room_activity} activity we should do based on the voting '
-                 f'results.' if room_activity == 'Games' or room_activity == 'Leisure' else ''}"""
+            f"""{f'Do give specific {room_activity} activity we should do based on the voting '
+                 f'results.' if room_activity == 'Fun' or room_activity == 'Leisure' else ''}"""
             f"Format the activities in this manner.\n"
             f"Activity 1: Activity name (address)\n"
             f"Activity 2: Activity name (address)\n"
