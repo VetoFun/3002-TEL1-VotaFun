@@ -222,9 +222,13 @@ def test_set_room_props(clients, server_namespace, room_properties, mocker):
     )
 
     response1 = client1.get_received(namespace=server_namespace)
-    assert (
-        response1[2]["args"][0]["message"]
-        == f'Room 12345 has set the activity to {room_properties["room_activity"]} and location to {room_properties["room_location"]}.'
+    expected_message = (
+        f'Room 12345 has set the activity to {room_properties["room_activity"]}'
+    )
+    expected_message += f' and location to {room_properties["room_location"]}.'
+    assert response1[2]["args"][0]["message"] == (
+        f'Room 12345 has set the activity to {room_properties["room_activity"]}'
+        f' and location to {room_properties["room_location"]}.'
     )
 
 
@@ -241,6 +245,4 @@ def test_start_room(clients, server_namespace, room_properties, mocker):
     )
 
     response1 = client1.get_received(namespace=server_namespace)
-    assert (
-        response1[2]["args"][0]["message"]
-        == 'Room 12345 has started.')
+    assert response1[2]["args"][0]["message"] == "Room 12345 has started."
