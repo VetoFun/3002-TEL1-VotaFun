@@ -3,8 +3,6 @@ import { motion } from 'framer-motion';
 import { Loader } from '@/components/common/Loader';
 import { UserNameInput } from '@/app/room/join/[room]/components/UserNameInput';
 import { useErrorStore } from '@/stores/useErrorStore';
-import { useMemo } from 'react';
-import ErrorPage from '@/app/error';
 
 interface DashLineProps {
   width: string;
