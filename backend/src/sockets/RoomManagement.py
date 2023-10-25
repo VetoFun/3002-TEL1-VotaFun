@@ -261,7 +261,7 @@ class RoomManagement(Namespace):
                 asdict(message),
                 to=room_id,
             )
-            
+
     def on_kick_user(self, data):
         room_id = data["room_id"]
         user_id = data["user_id"]
