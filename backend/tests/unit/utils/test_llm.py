@@ -57,13 +57,29 @@ def sample_reprompt():
     return (
         "\nWe are indecisive so give us a properly formatted question "
         "with 4 options to vote. Remember do not repeat or ask similar questions and options. "
-        "Suggest 4 activities after question 5 and stop asking questions and options."
         "Format the questions in this manner: \n"
         "Question <x>: <question>\n"
         "1) <option 1>\n"
         "2) <option 2>\n"
         "3) <option 3>\n"
         "4) <option 4>\n"
+    )
+
+
+@pytest.fixture
+def final_prompt():
+    return (
+        "\n5 questions have been asked. Based on the voting results, can you recommend us 4"
+        "Food activities in Center Singapore. "
+        "Format the activities in this manner.\n"
+        "Activity 1: Food activity, and general location\n"
+        "Activity 2: Food activity, and general location\n"
+        "Activity 3: Food activity, and general location\n"
+        "Activity 4: Food activity, and general location\n"
+        "Remember the location must be in Center Singapore, and the Food activity "
+        "recommended must be based off all the previous questions and voting results. Do not ask us "
+        "anymore questions. Give us the location of the place, or the name where the activity should "
+        "be at."
     )
 
 
@@ -97,25 +113,27 @@ def test_extract_question_options(sample_llm):
     assert len(extracted_information["options"]) == 2
     assert (
         extracted_information["options"][0]["option_text"]
-        == "Yes, we'd like to have snacks available. "
+        == "Yes, we'd like to have snacks available"
     )
     assert extracted_information["options"][0]["option_id"] == "1"
     assert (
         extracted_information["options"][1]["option_text"]
-        == "Yes, we'd like to have a meal included. "
+        == "Yes, we'd like to have a meal included"
     )
     assert extracted_information["options"][1]["option_id"] == "2"
 
 
 def test_generate_llm_reply(
-    sample_llm, sample_question, sample_messages, sample_reprompt
+    sample_llm, sample_question, sample_messages, sample_reprompt, final_prompt
 ):
     llm_reply = sample_llm.generate_llm_reply(
-        past_questions=[], message=sample_messages
+        past_questions=[], message=sample_messages, final_prompt=final_prompt
     )
 
     llm_reply_past_question = sample_llm.generate_llm_reply(
-        past_questions=[sample_question.to_dict()], message=sample_messages
+        past_questions=[sample_question.to_dict()],
+        message=sample_messages,
+        final_prompt=final_prompt,
     )
     assert llm_reply[0] == sample_messages[0]
     assert llm_reply_past_question[1] == {
@@ -137,12 +155,13 @@ def test_extract_activities(sample_llm, sample_question):
     )
     activities = sample_llm.extract_activities(sample_reply)
     all_activities = activities["activities"]
+    print(all_activities)
 
     assert activities["num_of_activity"] == 2 == len(all_activities)
-    assert all_activities[0]["activity_text"] == "Escape Room Challenge at Lost SG"
-    assert all_activities[0]["activity_id"] == "1"
-    assert all_activities[1]["activity_text"] == "Virtual Reality Experience at V-Room"
-    assert all_activities[1]["activity_id"] == "2"
+    assert all_activities[0].option_text == "Escape Room Challenge at Lost SG"
+    assert all_activities[0].option_id == "1"
+    assert all_activities[1].option_text == "Virtual Reality Experience at V-Room"
+    assert all_activities[1].option_id == "2"
 
 
 def test_extract_zero_activities(sample_llm, sample_question):
