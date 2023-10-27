@@ -451,6 +451,7 @@ class RoomManagement(Namespace):
     def on_set_room_properties(self, data):
         room_activity = data["room_activity"]
         room_location = data["room_location"]
+        room_max_users = data["max_capacity"] if "max_capacity" in data else Config.MAX_CAPACITY
         room_id = data["room_id"]
 
         message = Message()
@@ -462,6 +463,7 @@ class RoomManagement(Namespace):
                 request_user_id=request.sid,
                 room_location=room_location,
                 room_activity=room_activity,
+                room_capacity=room_max_users,
             )
 
             message.success = True

@@ -2,6 +2,7 @@
 import { motion } from 'framer-motion';
 import { Loader } from '@/components/common/Loader';
 import { UserNameInput } from '@/app/room/join/[room]/components/UserNameInput';
+import { useErrorStore } from '@/stores/useErrorStore';
 
 interface DashLineProps {
   width: string;
@@ -26,6 +27,9 @@ const DashLine = ({ x, y, width, color = 'bg-neutral', speed = 1.5, delay = 0 }:
 };
 
 export default function JoinRoomPage() {
+
+  const [message] = useErrorStore((state) => [state.message]);
+
   return (
     <main className="h-screen w-screen">
       <div className="relative left-1/2 top-1/2 flex w-fit -translate-x-1/2 -translate-y-1/3 flex-col gap-2">
@@ -43,6 +47,11 @@ export default function JoinRoomPage() {
         <DashLine x="left-0" y="top-1/6" width="w-16" color="bg-accent" speed={3} delay={5} />
         <DashLine x="left-0" y="top-1/7" width="w-16" color="bg-neutral" speed={2} delay={6} />
       </motion.div>
+      {message &&  <div className="toast fixed bottom-8">
+      <div className="alert alert-error">
+        <span>{message}</span>
+      </div>
+    </div>}
     </main>
   );
 }

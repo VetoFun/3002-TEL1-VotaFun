@@ -6,6 +6,7 @@ import { Room } from '@/types/Room';
 import { ConnectionStatus } from '@/types/Connection';
 import { Question } from '@/types/Question';
 import { Option } from '@/types/Option';
+import { useErrorStore } from './useErrorStore';
 
 type GameStore = {
   status: ConnectionStatus;
@@ -17,7 +18,7 @@ type GameStore = {
     createRoom: () => void;
     joinRoom: (roomId: string, username: string) => void;
     kickUser: (roomId: string, userId: string, userName: string) => void;
-    sendRoomProperties: (roomId: string, location: string, activity: string) => void;
+    sendRoomProperties: (roomId: string, location: string, activity: string, maxUsers: number) => void;
     startRoom: () => void;
     vote: (option: string) => void;
   };
@@ -82,7 +83,7 @@ export const useGameStore = create<GameStore>((set, get) => {
       // console.log(resp);
       set(() => ({ room: resp.data.room }));
     } else {
-      throw new Error(resp.message);
+      useErrorStore.setState({ message: resp.message });
     }
   });
 
@@ -95,7 +96,8 @@ export const useGameStore = create<GameStore>((set, get) => {
       }));
     } else {
       // console.error(resp.message);
-      throw new Error(resp.message);
+      // throw new Error(resp.message);
+      useErrorStore.setState({ message: resp.message });
     }
   });
 
@@ -203,9 +205,9 @@ export const useGameStore = create<GameStore>((set, get) => {
         if (!userName) throw new Error('Username is not provided when kicking user');
         socket.emit('kick_user', { room_id: roomId, user_id: userId, user_name: userName });
       },
-      sendRoomProperties(roomId: string, location: string, activity: string) {
+      sendRoomProperties(roomId: string, location: string, activity: string, maxUsers: number) {
         if (!roomId) throw new Error('Room ID is not provided when setting room properties');
-        socket.emit('set_room_properties', { room_id: roomId, room_activity: activity, room_location: location });
+        socket.emit('set_room_properties', { room_id: roomId, room_activity: activity, room_location: location, max_capacity: maxUsers });
       },
       startRoom() {
         checkConnection();
