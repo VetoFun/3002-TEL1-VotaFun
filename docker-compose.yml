@@ -18,7 +18,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
       args:
-        - OPENAI_API_KEY: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
+        - OPENAI_API_KEY: // add
     volumes:
       - ./backend/src:/app/src
     ports:

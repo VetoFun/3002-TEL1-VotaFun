@@ -21,7 +21,7 @@ class LLM:
         # re prompts
         self.re_prompt = (
             "\nWe are indecisive so give us a properly formatted question "
-            "with 4 options to vote. Remember do not repeat or ask similar questions and options. "
+            "with 4 options to vote. Remember ask unique questions and options. "
             "Format the questions in this manner: \n"
             "Question <x>: <question>\n"
             "1) <option 1>\n"
@@ -42,38 +42,52 @@ class LLM:
         messages = [
             {
                 "role": "system",
-                "content": f"We are a group of friends planning a {room_activity} activity in {room_location} Singapore"
-                f" and we need your help. Can you give us 5 questions one at a time, along with 4 options to vote for. "
-                f"Questions and votes must be generated based on the previous response except for the first question."
+                "content": f"We are a group of friends planning for {room_activity} activity in {room_location} "
+                f"Singapore and we need your help to figure out the details of our activity."
+                f"Can you give us a series of 5 questions, namely what, where, when to help us pinpoint the at "
+                f"a specific location?"
+                f"Each question should help narrow down our choices to a single location in {room_location} Singapore,"
+                f"where we can carry out our {room_activity} activity"
+                f"Please avoid asking how far should an activity be, or when it should take place."
+                f"Each question should provide 4-6 diverse options for us to vote for."
+                f"""{'Do consider that some of our friends may have dietary restrictions and one of the questions '
+                     'should ask for them (ie. Halal, Vegan).' if room_activity == 'Food' else ''}"""
+                f"""{'Do ask for cuisines from countries located within East Asia and Western Countries or even here '
+                     'in Singapore. ' if room_activity == 'Food' else ''}"""
+                f"""{'Do ask what type of activity we would like to play.' if room_activity == 'Fun' else ''}"""
+                f"""{'Avoid giving an option for virtual activity, the location must be physical'
+                     '.' if room_activity == 'Fun' else ''}"""
+                f"""{'Do give a specific address if we are voting for a location.'
+                     '.' if room_activity == 'Fun' else ''}"""
+                f"""{'Do ask what type of leisure activity we would like to '
+                     'do.' if room_activity == 'Leisure' else ''}"""
+                f"Please avoid providing repetitive or similar questions."
                 f"Format the questions in this manner: \n"
                 f"Question <x>: <question>\n"
-                f"1) <option 1>\n"
-                f"2) <option 2>\n"
-                f"3) <option 3>\n"
-                f"4) <option 4>\n"
+                f"<number y>) <option y>\n"
                 f"We will tell you the result of our votes in this format: \n"
-                f"<option 1>) <number of votes for 1>\n"
-                f"<option 2>) <number of votes for 2>\n"
-                f"<option 3>) <number of votes for 3>\n"
-                f"<option 4>) <number of votes for 4>\n"
+                f"<option y>) <number of votes for y>\n"
                 f"Most importantly, do not repeat any questions and options. Be concise when generating options, "
-                f"preferably within 10 words.",
+                f"preferably within 10 words. Do ask one question at a time.",
             }
         ]
 
         # final prompt once 5 questions is asked.
         final_prompt = (
-            f"\n5 questions have been asked. Based on the voting results, can you recommend us 4"
-            f"{room_activity} activities in {room_location} Singapore. "
+            f"\nWe have provided our preferences for the kind of activity we would like to pursue."
+            f"Based on the voting results, can you recommend us 4 "
+            f"locations in {room_location} Singapore that we can enjoy our {room_activity} activities in? "
+            f"""{f'Do give specific {room_activity} activity we should do based on the voting '
+                 f'results.' if room_activity == 'Fun' or room_activity == 'Leisure' else ''}"""
             f"Format the activities in this manner.\n"
-            f"Activity 1: {room_activity} activity, and general location\n"
-            f"Activity 2: {room_activity} activity, and general location\n"
-            f"Activity 3: {room_activity} activity, and general location\n"
-            f"Activity 4: {room_activity} activity, and general location\n"
+            f"Activity 1: Activity name (address)\n"
+            f"Activity 2: Activity name (address)\n"
+            f"Activity 3: Activity name (address)\n"
+            f"Activity 4: Activity name (address)\n"
+            f"Please provide the location name and address within the same line.\n"
+            f"Please be specific in the details of the location, namely the name of the location and the address.\n"
             f"Remember the location must be in {room_location} Singapore, and the {room_activity} activity "
-            f"recommended must be based off all the previous questions and voting results. Do not ask us "
-            f"anymore questions. Give us the location of the place, or the name where the activity should "
-            f"be at."
+            f"recommended must be based off our choices. Do not ask us anymore questions."
         )
 
         # getting the past questions asked by chatGPT and their votes
@@ -145,11 +159,20 @@ class LLM:
         logger.info(message)
         return message
 
+    # def summarize_votes(self, question, votes):
+    #     content = f"Given the following question: '{question}'\nCould you provide a summary in one sentence of the
+    #     following options that we have voted on?\n"
+    #     for option in votes:
+    #         content += f"{option['option_text']}: {option['votes']}\n"
+
     def call_gpt(self, messages):
         # calling chatGPT API
         try:
             chat = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo", messages=messages
+                model="gpt-3.5-turbo",
+                messages=messages,
+                temperature=0.4,
+                presence_penalty=1.0,
             )
             chatgpt_reply = chat.choices[0].message["content"]
         except Exception:

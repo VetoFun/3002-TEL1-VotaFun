@@ -13,7 +13,7 @@ export default function Home() {
           </div>
         </div>
         <div className="mx-auto mt-4 flex w-[600px] flex-col gap-2 transition-all">
-          <Link className="btn btn-primary h-fit w-full py-4 text-lg hover:scale-105" href={'/room/create'}>
+          <Link className="btn btn-primary h-fit w-full py-3 text-lg hover:scale-105" href={'/room/create'}>
             Create Room
           </Link>
           <JoinRoomInput />

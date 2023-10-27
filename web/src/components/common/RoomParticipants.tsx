@@ -10,8 +10,8 @@ const RoomParticipants = () => {
   const [currUser, room] = useGameStore((state) => [state.user, state.room]);
 
   return (
-    <aside className="flex h-screen w-80 flex-col bg-neutral py-6 text-base-100">
-      <h2 className="border-b-2 pb-4 text-center text-2xl font-semibold ">Participants</h2>
+    <aside className="flex h-screen w-60 flex-col bg-neutral py-6 text-base-100">
+      <h2 className="border-b-2 pb-4 text-center text-xl font-semibold ">Participants</h2>
       <div>
         {room.users.map((user) => {
           return (
