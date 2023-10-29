@@ -56,7 +56,7 @@ def sample_reprompt():
     # Create the initial prompt
     return (
         "\nWe are indecisive so give us a properly formatted question "
-        "with 4 options to vote. Remember do not repeat or ask similar questions and options. "
+        "with 4 options to vote. Remember ask unique questions and options. "
         "Format the questions in this manner: \n"
         "Question <x>: <question>\n"
         "1) <option 1>\n"
