@@ -26,7 +26,7 @@ def sample_room_data():
         max_capacity=TEST_MAX_CAPACITY,
         last_activity="2023-09-22 12:00:00",
         questions=TEST_QUESTIONS,
-        host_id="host1",
+        host_id="a1",
         status=RoomStatus.WAITING,
         room_location="Location1",
         room_activity="Activity1",
@@ -45,7 +45,7 @@ def test_query_room_data_with_existing_room(mock_redis, sample_room_data):
     )
 
     # Query the room data
-    retrieved_room = mock_redis.query_room_data(room_id=room_id, return_dict=False)
+    retrieved_room = mock_redis._query_room_data(room_id=room_id, return_dict=False)
 
     # Assert that the retrieved room matches the sample data
     assert retrieved_room == sample_room_data
@@ -56,7 +56,7 @@ def test_query_existing_room_data_return_dict(mock_redis, sample_room_data):
     mock_redis.store_room_data(
         room_id=room_id, room_data=sample_room_data, pipeline=mock_redis.r.pipeline()
     )
-    room_data_dict = mock_redis.query_room_data(room_id=room_id, return_dict=True)
+    room_data_dict = mock_redis._query_room_data(room_id=room_id, return_dict=True)
 
     # Verify that room_data_dict is a dictionary and matches the sample data
     assert isinstance(room_data_dict, dict)
@@ -70,7 +70,7 @@ def test_query_room_data_with_nonexistent_room(mock_redis):
 
     # Attempt to query the room data for a room that doesn't exist
     with pytest.raises(KeyError):
-        mock_redis.query_room_data(room_id=room_id)
+        mock_redis._query_room_data(room_id=room_id)
 
 
 def test_store_room_data(mock_redis, sample_room_data):
@@ -106,9 +106,9 @@ def test_add_user(mock_redis, sample_room_data):
     users = mock_redis.add_user(room_id=room_id, user_id="u3", username="Charles")
 
     # Query the room data
-    queried_room = mock_redis.query_room_data(sample_room_data.room_id)
+    queried_room = mock_redis._query_room_data(sample_room_data.room_id)
 
-    assert queried_room.users == users
+    assert queried_room == users
 
 
 def test_add_user_max(mock_redis, sample_room_data):
@@ -124,7 +124,7 @@ def test_add_user_max(mock_redis, sample_room_data):
         mock_redis.add_user(room_id=room_id, user_id="u3", username="Charles")
 
     # Check that the room still has only max users
-    assert len(mock_redis.get_users(room_id=room_id)) == TEST_MAX_CAPACITY
+    assert mock_redis._query_room_data(room_id).number_of_user == TEST_MAX_CAPACITY
     # Add one more, which should raise an exception
     with pytest.raises(Exception):
         mock_redis.add_user(room_id=room_id, user_id="u3", username="Charles")
@@ -140,10 +140,10 @@ def test_get_users(mock_redis, sample_room_data):
         room_id=room_id, room_data=sample_room_data, pipeline=pipeline
     )
 
-    users = mock_redis.get_users(sample_room_data.room_id)
+    users = mock_redis._query_room_data(room_id).users
 
     # Check that the user is in the list of users
-    assert len(TEST_USERS) == len(mock_redis.get_users(room_id=room_id))
+    assert len(TEST_USERS) == len(users)
     assert users[0].user_id == TEST_USERS[0].user_id
 
 
@@ -157,12 +157,12 @@ def test_remove_users(mock_redis, sample_room_data):
         room_id=room_id, room_data=sample_room_data, pipeline=pipeline
     )
     # Check that there is a user
-    result = mock_redis.get_users(room_id)
+    result = mock_redis._query_room_data(room_id).users
     assert result == TEST_USERS
 
-    result, _ = mock_redis.remove_user(room_id, TEST_USERS[0].user_id)
+    result, _, _ = mock_redis.remove_user(room_id, TEST_USERS[0].user_id)
     # Check that the operation was successful
-    assert result == []
+    assert result.users == []
 
 
 def test_get_questions(mock_redis, sample_room_data):
@@ -174,7 +174,7 @@ def test_get_questions(mock_redis, sample_room_data):
     mock_redis.store_room_data(
         room_id=room_id, room_data=sample_room_data, pipeline=pipeline
     )
-    questions = mock_redis.get_questions(sample_room_data.room_id)
+    questions = mock_redis._query_room_data(sample_room_data.room_id).questions
     assert len(questions) == len(TEST_QUESTIONS)
     assert questions[0].question_id == TEST_QUESTIONS[0].question_id
 
@@ -213,7 +213,7 @@ def test_get_options(mock_redis, sample_room_data):
         room_id=room_id, room_data=sample_room_data, pipeline=pipeline
     )
 
-    options = mock_redis.get_options(room_id, sample_room_data.questions[0].question_id)
+    options = mock_redis._query_room_data(sample_room_data.room_id).questions[0].options
 
     # Check that the option is in the list of options
     assert len(options) == len(TEST_QUESTIONS[0].options)
@@ -230,18 +230,14 @@ def test_add_option(mock_redis, sample_room_data):
         room_id=room_id, room_data=sample_room_data, pipeline=pipeline
     )
     # Check for number of option before
-    result = mock_redis.get_options(room_id, sample_room_data.questions[0].question_id)
+    question = mock_redis._query_room_data(sample_room_data.room_id).questions[0]
+    result = question.options
     assert len(result) == len(TEST_QUESTIONS[0].options)
 
     # Call the add_option function
     option4 = Option(option_id="new_option", option_text="New Option")
-    result = mock_redis.add_option(
-        room_id=room_id,
-        question_id=sample_room_data.questions[0].question_id,
-        option_id=option4.option_id,
-        option_text=option4.option_text,
-    )
-
+    question.add_option(option4)
+    result = question.options
     # Check that the option has been added
     assert len(result) == len(TEST_QUESTIONS[0].options) + 1
     assert result[3] == option4  # There's 3 option in the sample
@@ -258,10 +254,11 @@ def test_get_vote(mock_redis, sample_room_data):
     )
 
     # Call the get_vote function
-    result = mock_redis.get_vote(
-        room_id=room_id,
-        question_id=sample_room_data.questions[0].question_id,
-        option_id=sample_room_data.questions[0].options[0].option_id,
+    result = (
+        mock_redis._query_room_data(sample_room_data.room_id)
+        .questions[0]
+        .options[0]
+        .current_votes
     )
 
     # Check if the result is as expected
@@ -301,12 +298,11 @@ def test_set_vote(mock_redis, sample_room_data):
     )
 
     # Call the set_vote function
-    result = mock_redis.set_vote(
-        room_id=room_id,
-        question_id=sample_room_data.questions[0].question_id,
-        option_id=sample_room_data.questions[0].options[0].option_id,
-        num_votes=5,
+    option = (
+        mock_redis._query_room_data(sample_room_data.room_id).questions[0].options[0]
     )
+    option.set_vote(5)
+    result = option.current_votes
 
     # Check if the result is as expected
     assert result == 5  # Assuming you set the vote count to 5
@@ -323,13 +319,17 @@ def test_update_room_activity_time(mock_redis, sample_room_data):
     )
 
     # Call the update_room_activity_time function
-    new_activity_time = "2023-09-28 15:49:00"
-    result = mock_redis.update_room_activity_time(
-        room_id=room_id, activity_time=new_activity_time
-    )
+    room = mock_redis._query_room_data(sample_room_data.room_id)
+    room.set_last_activity()
+    result = room.last_activity
 
     # Check if the result is as expected
-    assert result == new_activity_time
+    from datetime import datetime, timedelta
+
+    returned_time = datetime.strptime(result, "%Y-%m-%d %H:%M:%S")
+    current_time = datetime.now()
+    threshold = timedelta(seconds=2)
+    assert current_time - returned_time < threshold
 
 
 def test_query_room_id_from_user_id(mock_redis, sample_room_data):
@@ -356,28 +356,4 @@ def test_create_room(mock_redis):
     result = mock_redis.create_room()
 
     # Check if the result is a valid room_id (string)
-    assert isinstance(result, str)
-
-
-def test_change_host(mock_redis, sample_room_data):
-    # Test function for change_host
-    pipeline = mock_redis.r.pipeline()
-    room_id = sample_room_data.room_id
-
-    # Store sample room data in Redis
-    mock_redis.store_room_data(
-        room_id=room_id, room_data=sample_room_data, pipeline=pipeline
-    )
-
-    # Call the change_host function
-    new_host_id = "new_host"
-    mock_redis.change_host(
-        room_id=room_id,
-        new_host_id=new_host_id,
-    )
-
-    # Retrieve the updated room data
-    updated_room_data = mock_redis.query_room_data(sample_room_data.room_id)
-
-    # Check if the host_id has been updated
-    assert updated_room_data.host_id == new_host_id
+    assert isinstance(result, Room)
