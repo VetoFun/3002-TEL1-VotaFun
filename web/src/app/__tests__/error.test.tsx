@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { ErrorPopup } from '../ErrorPopup';
+import ErrorPage from '../error';
 
 HTMLDialogElement.prototype.show = jest.fn(function mock(this: HTMLDialogElement) {
   this.open = true;
@@ -15,10 +15,10 @@ HTMLDialogElement.prototype.close = jest.fn(function mock(this: HTMLDialogElemen
   this.open = false;
 });
 
-describe('ErrorPopup', () => {
+describe('ErrorPage', () => {
   it('renders the error message', () => {
     const error = new Error('Test error message');
-    render(<ErrorPopup error={error} />);
+    render(<ErrorPage error={error} />);
 
     const errorMessage = screen.getByText('Test error message');
     expect(errorMessage).toBeInTheDocument();
@@ -26,7 +26,7 @@ describe('ErrorPopup', () => {
 
   it('renders the "Return to Home" link', () => {
     const error = new Error('Test error message');
-    render(<ErrorPopup error={error} />);
+    render(<ErrorPage error={error} />);
 
     const returnLink = screen.getByText('Return to Home');
     expect(returnLink).toBeInTheDocument();
