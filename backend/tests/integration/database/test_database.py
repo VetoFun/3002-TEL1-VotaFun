@@ -357,3 +357,59 @@ def test_create_room(mock_redis):
 
     # Check if the result is a valid room_id (string)
     assert isinstance(result, Room)
+
+
+def test_close_room(mock_redis, sample_room_data):
+    pipeline = mock_redis.r.pipeline()
+    room_id = sample_room_data.room_id
+
+    # Store sample room data in Redis
+    mock_redis.store_room_data(
+        room_id=room_id, room_data=sample_room_data, pipeline=pipeline
+    )
+
+    result = mock_redis.user_close_room(room_id, "a1")
+    assert result == 1
+
+
+def test_kick_user(mock_redis, sample_room_data):
+    pipeline = mock_redis.r.pipeline()
+    room_id = sample_room_data.room_id
+
+    # Store sample room data in Redis
+    mock_redis.store_room_data(
+        room_id=room_id, room_data=sample_room_data, pipeline=pipeline
+    )
+
+    result = mock_redis.add_user(room_id=room_id, user_id="u3", username="Charles")
+    assert len(result.users) == 2
+    result = mock_redis.kick_user(room_id, "a1", "u3")
+    assert len(result.users) == 1
+
+
+def test_start_room(mock_redis, sample_room_data):
+    pipeline = mock_redis.r.pipeline()
+    room_id = sample_room_data.room_id
+
+    # Store sample room data in Redis
+    mock_redis.store_room_data(
+        room_id=room_id, room_data=sample_room_data, pipeline=pipeline
+    )
+
+    result = mock_redis.start_room(room_id, "outdoor", "west", "a1")
+    assert result.status == RoomStatus.STARTED
+
+
+def test_set_room_props(mock_redis, sample_room_data):
+    pipeline = mock_redis.r.pipeline()
+    room_id = sample_room_data.room_id
+
+    # Store sample room data in Redis
+    mock_redis.store_room_data(
+        room_id=room_id, room_data=sample_room_data, pipeline=pipeline
+    )
+
+    result = mock_redis.set_room_properties(room_id, "a1", "west", "outdoor", 10)
+    assert result.room_activity == "outdoor"
+    assert result.room_location == "west"
+    assert result.max_capacity == 10
