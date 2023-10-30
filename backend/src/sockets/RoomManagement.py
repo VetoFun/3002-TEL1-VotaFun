@@ -245,19 +245,22 @@ class RoomManagement(Namespace):
                     room_id=room_id, user_id=requesting_user_id
                 )
             }
+            emit(
+                event_name,
+                asdict(message),
+                to=room_id,
+            )
             close_room(room_id)
 
         except Exception as e:
             logger.info(e)
             message.success = False
             message.message = f"Something went wrong, unable to close room due to {e}."
-
-        # Send message to all users in room
-        emit(
-            event_name,
-            asdict(message),
-            to=room_id,
-        )
+            emit(
+                event_name,
+                asdict(message),
+                to=room_id,
+            )
 
     def on_kick_user(self, data):
         room_id = data["room_id"]

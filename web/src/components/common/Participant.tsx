@@ -16,7 +16,7 @@ function Participant({ userId, name, host, isCurrUserHost }: ParticipantProps) {
     <div className="group flex w-full gap-4 px-4 py-3 align-middle transition-colors hover:bg-accent group-hover:text-neutral">
       {host && (
         <span className="my-auto text-xl group-hover:text-warning">
-          <FaCrown />
+          <FaCrown data-testid="crown-icon" />
         </span>
       )}
       <div className="flex flex-1 justify-between">
@@ -26,6 +26,7 @@ function Participant({ userId, name, host, isCurrUserHost }: ParticipantProps) {
             <button
               className="btn btn-circle btn-error btn-xs"
               onClick={() => actions.kickUser(room.room_id, userId, name)}
+              data-testid="kick-button"
             >
               <FaBan />
             </button>
