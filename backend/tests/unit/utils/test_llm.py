@@ -169,3 +169,57 @@ def test_extract_zero_activities(sample_llm, sample_question):
     activities = sample_llm.extract_activities(sample_reply)
 
     assert activities["num_of_activity"] == 0
+
+
+def test_retry_logic(sample_llm, monkeypatch):
+    sample_reply = (
+        "Question 1: Would your group like to incorporate any food or snacks during the activity? \n"
+        "1) Yes, we'd like to have snacks available. \n"
+    )
+    with monkeypatch.context() as m:
+        m.setattr(sample_llm, "call_gpt", lambda *args: sample_reply)
+        with pytest.raises(ValueError):
+            sample_llm.retry_logic("")
+
+
+def test_get_reply(sample_llm, mocker, monkeypatch, sample_question):
+    mock_database = mocker.MagicMock()
+    mock_room = mocker.MagicMock()
+    mock_database._query_room_data.return_value = mock_room
+    mock_room.get_room_activity.return_value = "Food"
+    mock_room.get_room_location.return_value = "Center"
+    mock_room.past_questions = sample_question
+
+    sample_reply = (
+        "Question 4: Would your group like to incorporate any food or snacks during the activity? \n"
+        "1) Yes, we'd like to have snacks available. \n"
+        "2) Yes, we'd like to have a meal included. \n"
+    )
+
+    question_text = (
+        "Would your group like to incorporate any food or snacks during the activity? "
+    )
+
+    with monkeypatch.context() as m:
+        m.setattr(sample_llm, "call_gpt", lambda **kwargs: sample_reply)
+        reply = sample_llm.get_reply("test_id", mock_database)[0]
+        assert (
+            reply["question_id"]
+            == sha1(
+                "Would your "
+                "group like to incorporate any food or snacks "
+                "during the activity? ".encode("utf-8")
+            ).hexdigest()
+        )
+        assert reply["question_text"] == question_text
+        assert len(reply["options"]) == 2
+        assert (
+            reply["options"][0]["option_text"]
+            == "Yes, we'd like to have snacks available"
+        )
+        assert reply["options"][0]["option_id"] == "1"
+        assert (
+            reply["options"][1]["option_text"]
+            == "Yes, we'd like to have a meal included"
+        )
+        assert reply["options"][1]["option_id"] == "2"
