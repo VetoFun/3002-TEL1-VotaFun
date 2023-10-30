@@ -37,3 +37,6 @@ next-env.d.ts
 
 # testing
 .swc
+/test-results/
+/playwright-report/
+/playwright/.cache/
