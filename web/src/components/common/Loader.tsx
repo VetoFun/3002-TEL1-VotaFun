@@ -7,7 +7,7 @@ const Loader = () => {
     //   <span className="h-4 w-4 rounded-full bg-warning"></span>
     //   <span className="h-4 w-4 rounded-full bg-error"></span>
     // </div>
-    <div>
+    <div data-testid="loader">
       <motion.div
         className="my-16 flex h-16 w-48 items-center justify-center rounded-lg bg-neutral text-center text-lg font-bold text-base-100"
         animate={{
