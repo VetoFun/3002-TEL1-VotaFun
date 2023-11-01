@@ -12,7 +12,7 @@ from src.logger import logger
 class LLM:
     def __init__(self):
         # regexes to extract information Chatgpt returns
-        self.activity_regex = r"Activity \d+: (.+)"
+        self.activity_regex = r"[Activity|Location] \d+: (.+)"
         self.question_regex = r"Question \d+: (.+)"
         self.option_regex = r"[0-9]\) (.+)\b"
         # sets the api key
@@ -50,9 +50,11 @@ class LLM:
                 f"where we can carry out our {room_activity} activity"
                 f"Please avoid asking how far should an activity be, or when it should take place."
                 f"Each question should provide 4-6 diverse options for us to vote for."
+                f"""{'For Food Activity, we would like to have a meal somewhere in Singapore and need your help to decide where to eat.'
+                    if room_activity == 'Food' else ''}"""
                 f"""{'Do consider that some of our friends may have dietary restrictions and one of the questions '
                      'should ask for them (ie. Halal, Vegan).' if room_activity == 'Food' else ''}"""
-                f"""{'Do ask for cuisines from countries located within East Asia and Western Countries or even here '
+                f"""{'Do suggest a cuisine found here in Singpoare (especially food from East Asia) '
                      'in Singapore. ' if room_activity == 'Food' else ''}"""
                 f"""{'Do ask what type of activity we would like to play.' if room_activity == 'Fun' else ''}"""
                 f"""{'Avoid giving an option for virtual activity, the location must be physical'
@@ -171,8 +173,8 @@ class LLM:
             chat = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
                 messages=messages,
-                temperature=0.4,
-                presence_penalty=1.0,
+                temperature=0.8,
+                presence_penalty=1.5,
             )
             chatgpt_reply = chat.choices[0].message["content"]
         except Exception:
