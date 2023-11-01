@@ -50,8 +50,8 @@ class LLM:
                 f"where we can carry out our {room_activity} activity"
                 f"Please avoid asking how far should an activity be, or when it should take place."
                 f"Each question should provide 4-6 diverse options for us to vote for."
-                f"""{'For Food Activity, we would like to have a meal somewhere in Singapore and need your help to decide where to eat.'
-                    if room_activity == 'Food' else ''}"""
+                f"""{'For Food Activity, we would like to have a meal somewhere in Singapore and need your help '
+                    'to decide where to eat.' if room_activity == 'Food' else ''}"""
                 f"""{'Do consider that some of our friends may have dietary restrictions and one of the questions '
                      'should ask for them (ie. Halal, Vegan).' if room_activity == 'Food' else ''}"""
                 f"""{'Do suggest a cuisine found here in Singpoare (especially food from East Asia) '
