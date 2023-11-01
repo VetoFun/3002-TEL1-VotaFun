@@ -116,6 +116,10 @@ test('Vote options', async ({ browser }) => {
   await hostpage.getByRole('button').click();
   await hostpage.waitForURL('https://votafun.onrender.com/room/lobby/*');
 
+  // set room location and activity
+  await hostpage.locator('[class="select select-bordered select-error w-full text-lg"]').nth(0).selectOption("East");
+  await hostpage.locator('[class="select select-bordered select-error w-full text-lg"]').nth(1).selectOption("Food");
+
   // starts the room
   await hostpage.getByRole('button').nth(0).click();
   await hostpage.waitForURL('https://votafun.onrender.com/room/session/*');
@@ -152,4 +156,54 @@ test('Set room properties', async ({ browser }) => {
   await participantPage.getByRole('textbox').fill('Charles');
   await participantPage.getByRole('button').click();
   await participantPage.waitForURL('https://votafun.onrender.com/room/lobby/*');
+
+  // set room properties
+  await hostpage.locator('[class="select select-bordered select-error w-full text-lg"]').nth(0).selectOption("East");
+  await hostpage.locator('[class="select select-bordered select-error w-full text-lg"]').nth(1).selectOption("Food");
+  await hostpage.locator('[class="input input-lg input-bordered flex-1 py-3 text-xl tracking-widest"]').fill("50");
+
+  // check if participants can see the new room properties
+  await expect(participantPage.locator('[class="flex-1 rounded-md bg-accent py-2 text-center font-light leading-normal text-accent-content"]').nth(0)).toContainText("East");
+  await expect(participantPage.locator('[class="flex-1 rounded-md bg-accent py-2 text-center font-light leading-normal text-accent-content"]').nth(1)).toContainText("Food");
+  // check if max capacity is set correctly
+  await expect(hostpage.locator('[class="input input-lg input-bordered flex-1 py-3 text-xl tracking-widest"]')).toHaveValue("50");
+});
+
+test('Game round', async ({ browser }) => {
+  test.setTimeout(200000);
+  const hostContext = await browser.newContext({ permissions: ["clipboard-read", "clipboard-write"] });
+  const hostpage = await hostContext.newPage();
+
+  await hostpage.goto('https://votafun.onrender.com/');
+  await hostpage.locator('[class="btn btn-primary h-fit w-full py-3 text-lg hover:scale-105"]').click();
+  await hostpage.waitForURL('https://votafun.onrender.com/room/join/*');
+  await hostpage.getByRole('textbox').fill('Lloyd');
+  await hostpage.getByRole('button').click();
+  await hostpage.waitForURL('https://votafun.onrender.com/room/lobby/*');
+
+  // set room properties
+  await hostpage.locator('[class="select select-bordered select-error w-full text-lg"]').nth(0).selectOption("East");
+  await hostpage.locator('[class="select select-bordered select-error w-full text-lg"]').nth(1).selectOption("Food");
+
+  // starts the room
+  await hostpage.getByRole('button').nth(0).click();
+  await hostpage.waitForURL('https://votafun.onrender.com/room/session/*');
+
+  // for each round click on the first option
+  for (let i=0; i<5; i++) {
+    await hostpage.getByRole('button').nth(0).click();
+    await hostpage.waitForTimeout(16000);
+  }
+
+  await hostpage.waitForTimeout(10000);
+  // check if the 6th question is for the activity
+  await expect(hostpage.locator('[class="chat-bubble mx-auto w-full px-8 py-6 text-xl"]')).toContainText("Which activity would you like to do?");
+  // click on the first option for the activities
+  await hostpage.getByRole('button').nth(0).click();
+  await hostpage.waitForTimeout(16000);
+  // checks if we can see the final activity
+  await expect(hostpage.locator('[class="select-none rounded-lg bg-primary p-6 px-8 text-xl text-base-100 transition-all hover:scale-110"]')).toBeVisible();
+  await expect(hostpage.getByRole('button')).toContainText("Leave Room");
+  await hostpage.getByRole('button').nth(0).click();
+  expect(hostpage.url()).toBe('https://votafun.onrender.com/');
 });
